@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+IFS=$'\n\t'
+
+cd "$(dirname "$0")"/..
+
+# shellcheck disable=1091
+source script/settings
+
+# shellcheck disable=1091
+source script/common
+
+while test $# -gt 0
+do
+    case "$1" in
+        --verbose|-v) VERBOSE="-v"
+            ;;
+        --no-cache|-nc) NO_CACHE="-count=1"
+            ;;
+        -run=*) RUN_TEST="$1"
+            ;;
+        --skip-integration|-si) SKIP_INTEGRATION=true
+            ;;
+        --skip-checks|-sc) SKIP_CHECKS=true
+            ;;
+        *) echo "bad option $1"; exit 1
+            ;;
+    esac
+    shift
+done
+
+if [ ! $SKIP_CHECKS ]; then
+    taskProgress "formatting"
+
+    #run goimports
+    if  builtin type -p goimports &>/dev/null; then
+        find ./ -name "*.go" | grep -v /vendor/ | xargs -n 1 -P 8 goimports -w=true
+    fi
+
+    if  builtin type -p gofmt &>/dev/null; then
+        find ./ -name "*.go" | grep -v /vendor/ | xargs -n 1 -P 8 gofmt -s -w
+    fi
+fi
+
+taskStart "test"
+
+taskProgress "unit tests"
+go test -mod=vendor -race  "$RUN_TEST" ./... $VERBOSE $NO_CACHE
+
+if [ ! $SKIP_INTEGRATION ]; then
+    taskProgress "integration tests"
+    go test -mod=vendor -p 1 -tags=integration "$RUN_TEST" ./... $VERBOSE $NO_CACHE
+fi

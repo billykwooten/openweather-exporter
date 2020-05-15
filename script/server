@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+set -e
+set +x
+set -o errexit
+set -o errtrace
+
+cd "$(dirname "$0")/.."
+
+# shellcheck disable=1091
+source script/settings
+
+unset GIT_BRANCH
+
+docker stop "$IMAGE_NAME" &> /dev/null || true
+docker rm -f "$IMAGE_NAME" &> /dev/null || true

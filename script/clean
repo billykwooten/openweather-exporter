@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+
+# script/clean: cleans docker images for this build
+
+if [ "$*" == "help" ]; then
+    echo "Usage $0 { all | help }"
+    exit 1
+fi
+
+set -e
+cd "$(dirname "$0")"/..
+
+# shellcheck disable=1091
+source script/settings
+
+# shellcheck disable=1091
+source script/common
+
+taskStart "clean"
+
+rm -rf "${IMAGE_NAME}"
+rm -rf .build
+rm -rf "${IMAGE_NAME}.cover"
+
+if builtin type -p docker &>/dev/null; then
+
+    taskProgress "cleaning ${IMAGE_NAME} containers ..."
+    docker ps -a | grep "${IMAGE_NAME}" | awk '{print $1 }' | xargs -I {} docker rm -f {} &> /dev/null || true
+
+    taskProgress "cleaning ${IMAGE_NAME} images ..."
+    docker images -a | grep "${IMAGE_NAME}" | awk '{print $1":"$2 }' | xargs -I {} docker rmi -f {} &> /dev/null || true
+
+    case $1 in
+        all)
+            taskProgress "cleaning stopped containers ..."
+            docker ps --no-trunc -aq | xargs -I {} docker rm -f {} &> /dev/null || true
+
+            taskProgress "cleaning dangling images ..."
+            docker images --filter dangling=true | xargs -I {} docker rmi {} &> /dev/null || true
+
+            taskProgress "cleaning dangling volumes ..."
+            docker volume ls -qf dangling=true | xargs -I {} docker volume rm {} &> /dev/null || true
+            ;;
+    esac
+
+    echo ""
+
+fi
+
+taskEnd

@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+
+set -e -o pipefail +x
+
+cd "$(dirname "$0")"/..
+
+# shellcheck disable=1091
+source script/settings
+
+# shellcheck disable=1091
+source script/common
+
+taskStart "cibuild"
+
+#run goimports
+if  builtin type -p goimports &>/dev/null; then
+    taskProgress "formatting"
+    find ./ -name "*.go" | grep -v /vendor/ | xargs goimports -w=true
+fi
+
+# run shellcheck
+if  builtin type -p shellcheck &>/dev/null; then
+    taskProgress "shellcheck"
+    for file in ./script/*
+    do
+        if [[ -x "$file" ]]; then
+            shellcheck "$file"
+        fi
+    done
+fi
+
+taskStart "go mod"
+taskProgress "Downloading mod files"
+GO111MODULE=on go mod vendor
+GO111MODULE=on go mod tidy
+GO111MODULE=on go mod verify
+
+taskProgress "docker"
+docker build  --build-arg LD_FLAGS="$LD_FLAGS" -f Dockerfile -t "${IMAGE_NAME}:${IMAGE_TAG}" .
+
+echo "==> Finished building Docker image for ${IMAGE_NAME}:${IMAGE_TAG}"
+
+echo ""
+git status
