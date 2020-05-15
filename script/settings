@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+#
+# Global settings and values
+
+set -e
+set -o errexit
+set -o errtrace
+
+cd "$(dirname "$0")"/..
+ROOT_DIR=$PWD
+
+IMAGE_NAME=openweather-exporter
+
+APP_BUILDSTAMP=$(date +%Y%m%d%H%M%S)
+
+if builtin type -p git &>/dev/null; then
+
+    if [ -f "$ROOT_DIR/.git/HEAD" ]; then
+
+        # shellcheck disable=2034
+        GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+        GIT_COMMIT=$(git log --format="%H" -n 1 | cut -c1-12)
+
+        # shellcheck disable=2015
+        GIT_DIRTY=$(test -n "$(git status --porcelain)" && echo "+CHANGES" || true)
+        APP_VERSION=$(git describe --tags 2> /dev/null | head -n 1 || echo "")
+        LD_FLAGS="-X main.GitCommit=$GIT_COMMIT$GIT_DIRTY"
+
+        if [ "$APP_VERSION" != "" ]; then
+            LD_FLAGS="$LD_FLAGS -X main.Version=$APP_VERSION"
+        fi
+    fi
+fi
+
+if [ "$APP_BUILDSTAMP" != "" ]; then
+    LD_FLAGS="$LD_FLAGS -X main.BuildStamp=$APP_BUILDSTAMP"
+fi
+
+### docker ###
+
+IMAGE_TAG="$GIT_COMMIT"
+
+# shellcheck disable=2034
+LOCAL_IMAGE_NAME="${IMAGE_NAME}:${IMAGE_TAG}"

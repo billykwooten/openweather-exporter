@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+#
+# Contains shared scripts
+
+set -e
+set -o errexit
+set -o errtrace
+
+function taskStart() {
+    echo -e "\\n==> $1\\n"
+}
+
+function taskEnd() {
+    echo -e "\\n==> Done!\\n"
+}
+
+function taskProgress() {
+    echo -e "\\n--> $1\\n"
+}
+
+function taskDebug() {
+    echo -e "~~~~~~~~~~ $1"
+}
+
+function taskError() {
+    echo -e "\\nERR: $1\\n" >&2
+    exit 1
+}

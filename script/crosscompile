@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+set -e -o pipefail +x
+
+cd "$(dirname "$0")/.."
+
+# shellcheck disable=1091
+source script/settings
+
+# shellcheck disable=1091
+source script/common
+
+function compile() {
+
+    taskDebug "compiling ${IMAGE_NAME}_$1_$2"
+    GOOS="$1" GOARCH="$2" go build -ldflags "$LD_FLAGS" -o "${IMAGE_NAME}_$1_$2"
+}
+
+if ! hash gox 2>/dev/null; then
+
+    compile "linux" "amd64"
+    compile "darwin" "amd64"
+
+else
+
+    gox -ldflags "$LD_FLAGS" -os="darwin linux" -arch="amd64" .
+
+fi
