@@ -59,6 +59,12 @@ scrape_configs:
       - targets: ['openweather-exporter:9091']
 ```
 
+## Grafana
+
+I have created a grafana dashboard for this exporter, feel free to use it. Link below.
+
+[Dashboard Link](https://github.com/billykwooten/GrafanaDashboards/blob/master/open_weather_map.json) 
+
 ## Development
 
 If you'd like to build this yourself you can clone this repo and run:
