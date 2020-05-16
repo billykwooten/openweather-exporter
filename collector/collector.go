@@ -89,7 +89,7 @@ func NewOpenweatherCollector(degressUnit string, language string, apikey string,
 		),
 		cloudiness: prometheus.NewDesc("openweather_cloudiness",
 			"Cloudiness percentage",
-			[]string{"location", "currentconditions"}, nil,
+			[]string{"location"}, nil,
 		),
 		sunrise: prometheus.NewDesc("openweather_sunrise",
 			"Sunrise time, unix, UTC",
@@ -122,7 +122,6 @@ func (collector *OpenweatherCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- collector.sunrise
 	ch <- collector.sunset
 	ch <- collector.currentconditions
-
 }
 
 //Collect implements required collect function for all prometheus collectors
