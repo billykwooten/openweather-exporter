@@ -44,7 +44,6 @@ type OpenweatherCollector struct {
 	cloudiness        *prometheus.Desc
 	sunrise           *prometheus.Desc
 	sunset            *prometheus.Desc
-
 }
 
 //You must create a constructor for you collector that
