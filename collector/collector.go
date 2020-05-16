@@ -44,6 +44,7 @@ type OpenweatherCollector struct {
 	cloudiness        *prometheus.Desc
 	sunrise           *prometheus.Desc
 	sunset            *prometheus.Desc
+	currentconditions *prometheus.Desc
 }
 
 //You must create a constructor for you collector that
@@ -56,35 +57,35 @@ func NewOpenweatherCollector(degressUnit string, language string, apikey string,
 		Location:    location,
 		temperatureMetric: prometheus.NewDesc("openweather_temperature",
 			"Current temperature in degrees",
-			[]string{"location", "currentconditions"}, nil,
+			[]string{"location"}, nil,
 		),
 		humidity: prometheus.NewDesc("openweather_humidity",
 			"Current relative humidity",
-			[]string{"location", "currentconditions"}, nil,
+			[]string{"location"}, nil,
 		),
 		feelslike: prometheus.NewDesc("openweather_feelslike",
 			"Current feels_like temperature in degrees",
-			[]string{"location", "currentconditions"}, nil,
+			[]string{"location"}, nil,
 		),
 		pressure: prometheus.NewDesc("openweather_pressure",
 			"Current Atmospheric pressure hPa",
-			[]string{"location", "currentconditions"}, nil,
+			[]string{"location"}, nil,
 		),
 		windspeed: prometheus.NewDesc("openweather_windspeed",
 			"Current Wind Speed in mph or meters/sec if imperial",
-			[]string{"location", "currentconditions"}, nil,
+			[]string{"location"}, nil,
 		),
 		rain1h: prometheus.NewDesc("openweather_rain1h",
 			"Rain volume for last hour, in millimeters",
-			[]string{"location", "currentconditions"}, nil,
+			[]string{"location"}, nil,
 		),
 		snow1h: prometheus.NewDesc("openweather_snow1h",
 			"Snow volume for last hour, in millimeters",
-			[]string{"location", "currentconditions"}, nil,
+			[]string{"location"}, nil,
 		),
 		winddegree: prometheus.NewDesc("openweather_winddegree",
 			"Wind direction, degrees (meteorological)",
-			[]string{"location", "currentconditions"}, nil,
+			[]string{"location"}, nil,
 		),
 		cloudiness: prometheus.NewDesc("openweather_cloudiness",
 			"Cloudiness percentage",
@@ -92,10 +93,14 @@ func NewOpenweatherCollector(degressUnit string, language string, apikey string,
 		),
 		sunrise: prometheus.NewDesc("openweather_sunrise",
 			"Sunrise time, unix, UTC",
-			[]string{"location", "currentconditions"}, nil,
+			[]string{"location"}, nil,
 		),
 		sunset: prometheus.NewDesc("openweather_sunset",
 			"Sunset time, unix, UTC",
+			[]string{"location"}, nil,
+		),
+		currentconditions: prometheus.NewDesc("openweather_currentconditions",
+			"Current weather conditions",
 			[]string{"location", "currentconditions"}, nil,
 		),
 	}
@@ -116,6 +121,7 @@ func (collector *OpenweatherCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- collector.cloudiness
 	ch <- collector.sunrise
 	ch <- collector.sunset
+	ch <- collector.currentconditions
 
 }
 
@@ -145,15 +151,16 @@ func (collector *OpenweatherCollector) Collect(ch chan<- prometheus.Metric) {
 
 	//Write latest value for each metric in the prometheus metric channel.
 	//Note that you can pass CounterValue, GaugeValue, or UntypedValue types here.
-	ch <- prometheus.MustNewConstMetric(collector.temperatureMetric, prometheus.GaugeValue, w.Main.Temp, collector.Location, weather_description)
-	ch <- prometheus.MustNewConstMetric(collector.humidity, prometheus.GaugeValue, float64(w.Main.Humidity), collector.Location, weather_description)
-	ch <- prometheus.MustNewConstMetric(collector.feelslike, prometheus.GaugeValue, w.Main.FeelsLike, collector.Location, weather_description)
-	ch <- prometheus.MustNewConstMetric(collector.pressure, prometheus.GaugeValue, w.Main.Pressure, collector.Location, weather_description)
-	ch <- prometheus.MustNewConstMetric(collector.windspeed, prometheus.GaugeValue, w.Wind.Speed, collector.Location, weather_description)
-	ch <- prometheus.MustNewConstMetric(collector.rain1h, prometheus.GaugeValue, w.Rain.OneH, collector.Location, weather_description)
-	ch <- prometheus.MustNewConstMetric(collector.winddegree, prometheus.GaugeValue, w.Wind.Deg, collector.Location, weather_description)
-	ch <- prometheus.MustNewConstMetric(collector.cloudiness, prometheus.GaugeValue, float64(w.Clouds.All), collector.Location, weather_description)
-	ch <- prometheus.MustNewConstMetric(collector.sunrise, prometheus.GaugeValue, float64(w.Sys.Sunrise), collector.Location, weather_description)
-	ch <- prometheus.MustNewConstMetric(collector.sunset, prometheus.GaugeValue, float64(w.Sys.Sunset), collector.Location, weather_description)
-	ch <- prometheus.MustNewConstMetric(collector.snow1h, prometheus.GaugeValue, w.Snow.OneH, collector.Location, weather_description)
+	ch <- prometheus.MustNewConstMetric(collector.temperatureMetric, prometheus.GaugeValue, w.Main.Temp, collector.Location)
+	ch <- prometheus.MustNewConstMetric(collector.humidity, prometheus.GaugeValue, float64(w.Main.Humidity), collector.Location)
+	ch <- prometheus.MustNewConstMetric(collector.feelslike, prometheus.GaugeValue, w.Main.FeelsLike, collector.Location)
+	ch <- prometheus.MustNewConstMetric(collector.pressure, prometheus.GaugeValue, w.Main.Pressure, collector.Location)
+	ch <- prometheus.MustNewConstMetric(collector.windspeed, prometheus.GaugeValue, w.Wind.Speed, collector.Location)
+	ch <- prometheus.MustNewConstMetric(collector.rain1h, prometheus.GaugeValue, w.Rain.OneH, collector.Location)
+	ch <- prometheus.MustNewConstMetric(collector.winddegree, prometheus.GaugeValue, w.Wind.Deg, collector.Location)
+	ch <- prometheus.MustNewConstMetric(collector.cloudiness, prometheus.GaugeValue, float64(w.Clouds.All), collector.Location)
+	ch <- prometheus.MustNewConstMetric(collector.sunrise, prometheus.GaugeValue, float64(w.Sys.Sunrise), collector.Location)
+	ch <- prometheus.MustNewConstMetric(collector.sunset, prometheus.GaugeValue, float64(w.Sys.Sunset), collector.Location)
+	ch <- prometheus.MustNewConstMetric(collector.snow1h, prometheus.GaugeValue, w.Snow.OneH, collector.Location)
+	ch <- prometheus.MustNewConstMetric(collector.currentconditions, prometheus.GaugeValue, 0, collector.Location, weather_description)
 }
