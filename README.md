@@ -25,12 +25,38 @@ Openweather exporter can be controlled by both ENV or CLI flags as described bel
 
 ## Usage
 
+Binary Usage
 ```
 # Export weather metrics from Seattle using binary
 ./openweather-exporter --city "Seattle, WA" --apikey mi4o2n54i0510n4510
+```
 
+Docker Usage
+```
 # Export weather metrics from Seattle using docker
 docker run -d --restart on-failure --name=openweather-exporter -p 9091:9091 billykwooten/openweather-exporter --city "Seattle, WA" --apikey mi4o2n54i0510n4510
+```
+
+Docker-compose Usage
+```
+  openweather-exporter:
+    image: billykwooten/openweather-exporter
+    container_name: openweather-exporter
+    restart: always
+    ports:
+      - "9091:9091"
+    environment:
+      - OW_CITY=New York, NY
+      - OW_APIKEY=mi4o2n54i0510n4510
+```
+
+Prometheus Scrape Usage
+```
+scrape_configs:
+  - job_name: 'openweather-exporter'
+    scrape_interval: 60s
+    static_configs:
+      - targets: ['openweather-exporter:9091']
 ```
 
 ## Development
