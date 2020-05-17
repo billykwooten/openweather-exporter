@@ -1,9 +1,8 @@
+# OpenWeather Exporter
 ![Docker Pulls](https://img.shields.io/docker/pulls/billykwooten/openweather-exporter.svg)
 ![Docker Automated](https://img.shields.io/docker/automated/billykwooten/openweather-exporter.svg)
 ![Docker Build](https://img.shields.io/docker/build/billykwooten/openweather-exporter.svg)
 
-
-# OpenWeather Exporter
 Prometheus exporter for [openweather API](https://openweathermap.org/api)
 
 # Requirements
