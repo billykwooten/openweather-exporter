@@ -14,7 +14,7 @@
 package geo
 
 import (
-	"log"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/codingsince1985/geo-golang"
 )
@@ -24,6 +24,8 @@ func Get_coords(geocoder geo.Geocoder, city string) (float64, float64) {
 	if location == nil {
 		log.Fatalf("got <nil> location")
 	}
+
+	log.Infof("Longitude: %f Latitude: %f for %s found, collecting metrics", location.Lng, location.Lat, city)
 
 	return location.Lat, location.Lng
 }

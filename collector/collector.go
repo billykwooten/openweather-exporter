@@ -14,9 +14,10 @@
 package collector
 
 import (
-	"log"
 	"net/http"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/billykwooten/openweather-exporter/geo"
 	owm "github.com/billykwooten/openweathermap"
@@ -138,6 +139,8 @@ func (collector *OpenweatherCollector) Collect(ch chan<- prometheus.Metric) {
 	w, err := owm.NewCurrent(collector.DegreesUnit, collector.Language, collector.ApiKey, owm.WithHttpClient(client))
 	if err != nil {
 		log.Fatalln(err)
+	} else {
+		log.Infof("Collecting metrics from openweather API successful")
 	}
 
 	w.CurrentByCoordinates(&owm.Coordinates{Longitude: longitude, Latitude: latitude})
