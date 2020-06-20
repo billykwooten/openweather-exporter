@@ -37,6 +37,13 @@ var (
 func main() {
 	kingpin.MustParse(app.Parse(os.Args[1:]))
 
+	// Setup better logging
+	formatter := &log.TextFormatter{
+		FullTimestamp: true,
+	}
+
+	log.SetFormatter(formatter)
+
 	//Create a new instance of the weatherCollector and
 	//register it with the prometheus client.
 	weatherCollector := collector.NewOpenweatherCollector(*degreesUnit, *language, *apiKey, *city)
