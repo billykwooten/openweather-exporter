@@ -19,13 +19,13 @@ import (
 	"github.com/codingsince1985/geo-golang"
 )
 
-func Get_coords(geocoder geo.Geocoder, city string) (float64, float64) {
-	location, _ := geocoder.Geocode(city)
-	if location == nil {
-		log.Fatalf("got <nil> location")
+func Get_coords(geocoder geo.Geocoder, city string) (float64, float64, error) {
+	location, err := geocoder.Geocode(city)
+	if err != nil {
+		return 0, 0, err
 	}
 
 	log.Infof("Longitude: %f Latitude: %f for %s found, collecting metrics", location.Lng, location.Lat, city)
 
-	return location.Lat, location.Lng
+	return location.Lat, location.Lng, nil
 }
