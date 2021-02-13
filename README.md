@@ -23,7 +23,7 @@ Openweather exporter can be controlled by both ENV or CLI flags as described bel
 |----------------------------|-----------------------------|---------------------------- |------------------------------------------------------------------------------------------------------------------|
 | `OW_LISTEN_ADDRESS`           | `listen-address`            | `:9091`                     | The port for /metrics to listen on |
 | `OW_APIKEY`                   | `apikey`                    | `<REQUIRED>`                | Your Openweather API key |
-| `OW_CITY`                     | `city`                      | `New York, NY`              | City/Location in which to gather weather metrics |
+| `OW_CITY`                     | `city`                      | `New York, NY`              | City/Location in which to gather weather metrics. Separate multiple locations with \| for example "New York, NY\|Seattle, WA" |
 | `OW_DEGREES_UNIT`             | `degrees-unit`              | `F`                         | Unit in which to show metrics (Kelvin, Fahrenheit or Celsius) |
 | `OW_LANGUAGE`                 | `language`                  | `EN`                        | Language in which to show metrics |
 
@@ -67,7 +67,7 @@ scrape_configs:
 
 I have created a grafana dashboard for this exporter, feel free to use it. Link below.
 
-[Dashboard Link](https://github.com/billykwooten/GrafanaDashboards/blob/master/open_weather_map.json) 
+[Dashboard Link](https://github.com/billykwooten/GrafanaDashboards/blob/master/open_weather_map.json)
 
 ## Development
 
