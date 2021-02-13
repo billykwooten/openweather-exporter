@@ -15,6 +15,7 @@ package collector
 
 import (
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/codingsince1985/geo-golang/openstreetmap"
@@ -33,9 +34,7 @@ type OpenweatherCollector struct {
 	ApiKey            string
 	DegreesUnit       string
 	Language          string
-	Location          string
-	Latitude          float64
-	Longitude         float64
+	Locations         []Location
 	temperatureMetric *prometheus.Desc
 	humidity          *prometheus.Desc
 	feelslike         *prometheus.Desc
@@ -50,23 +49,35 @@ type OpenweatherCollector struct {
 	currentconditions *prometheus.Desc
 }
 
+type Location struct {
+	Location  string
+	Latitude  float64
+	Longitude float64
+}
+
+func resolveLocations(locations string) []Location {
+	res := []Location{}
+
+	for _, location := range strings.Split(locations, "|") {
+		// Get Coords.
+		latitude, longitude, err := geo.Get_coords(openstreetmap.Geocoder(), location)
+		if err != nil {
+			log.Fatalf("failed to resolve location:", err)
+		}
+		res = append(res, Location{Location: location, Latitude: latitude, Longitude: longitude})
+	}
+	return res
+}
+
 //You must create a constructor for you collector that
 //initializes every descriptor and returns a pointer to the collector
-func NewOpenweatherCollector(degressUnit string, language string, apikey string, location string) *OpenweatherCollector {
-
-	// Get Coords.
-	latitude, longitude, err := geo.Get_coords(openstreetmap.Geocoder(), location)
-	if err != nil {
-		log.Fatalf("failed to resolve location:", err)
-	}
+func NewOpenweatherCollector(degressUnit string, language string, apikey string, locations string) *OpenweatherCollector {
 
 	return &OpenweatherCollector{
 		ApiKey:      apikey,
 		DegreesUnit: degressUnit,
 		Language:    language,
-		Location:    location,
-		Latitude:    latitude,
-		Longitude:   longitude,
+		Locations:   resolveLocations(locations),
 		temperatureMetric: prometheus.NewDesc("openweather_temperature",
 			"Current temperature in degrees",
 			[]string{"location"}, nil,
@@ -139,39 +150,42 @@ func (collector *OpenweatherCollector) Describe(ch chan<- *prometheus.Desc) {
 //Collect implements required collect function for all prometheus collectors
 func (collector *OpenweatherCollector) Collect(ch chan<- prometheus.Metric) {
 
-	// Setup HTTP Client
-	client := &http.Client{
-		Timeout: 1 * time.Second,
+	for _, location := range collector.Locations {
+
+		// Setup HTTP Client
+		client := &http.Client{
+			Timeout: 1 * time.Second,
+		}
+
+		// Grab Metrics
+		w, err := owm.NewCurrent(collector.DegreesUnit, collector.Language, collector.ApiKey, owm.WithHttpClient(client))
+		if err != nil {
+			log.Fatalln(err)
+		} else {
+			log.Infof("Collecting metrics from openweather API successful")
+		}
+
+		w.CurrentByCoordinates(&owm.Coordinates{Latitude: location.Latitude, Longitude: location.Longitude})
+
+		// Get Weather description out of Weather slice to pass as label
+		var weather_description string
+		for _, n := range w.Weather {
+			weather_description = n.Description
+		}
+
+		//Write latest value for each metric in the prometheus metric channel.
+		//Note that you can pass CounterValue, GaugeValue, or UntypedValue types here.
+		ch <- prometheus.MustNewConstMetric(collector.temperatureMetric, prometheus.GaugeValue, w.Main.Temp, location.Location)
+		ch <- prometheus.MustNewConstMetric(collector.humidity, prometheus.GaugeValue, float64(w.Main.Humidity), location.Location)
+		ch <- prometheus.MustNewConstMetric(collector.feelslike, prometheus.GaugeValue, w.Main.FeelsLike, location.Location)
+		ch <- prometheus.MustNewConstMetric(collector.pressure, prometheus.GaugeValue, w.Main.Pressure, location.Location)
+		ch <- prometheus.MustNewConstMetric(collector.windspeed, prometheus.GaugeValue, w.Wind.Speed, location.Location)
+		ch <- prometheus.MustNewConstMetric(collector.rain1h, prometheus.GaugeValue, w.Rain.OneH, location.Location)
+		ch <- prometheus.MustNewConstMetric(collector.winddegree, prometheus.GaugeValue, w.Wind.Deg, location.Location)
+		ch <- prometheus.MustNewConstMetric(collector.cloudiness, prometheus.GaugeValue, float64(w.Clouds.All), location.Location)
+		ch <- prometheus.MustNewConstMetric(collector.sunrise, prometheus.GaugeValue, float64(w.Sys.Sunrise), location.Location)
+		ch <- prometheus.MustNewConstMetric(collector.sunset, prometheus.GaugeValue, float64(w.Sys.Sunset), location.Location)
+		ch <- prometheus.MustNewConstMetric(collector.snow1h, prometheus.GaugeValue, w.Snow.OneH, location.Location)
+		ch <- prometheus.MustNewConstMetric(collector.currentconditions, prometheus.GaugeValue, 0, location.Location, weather_description)
 	}
-
-	// Grab Metrics
-	w, err := owm.NewCurrent(collector.DegreesUnit, collector.Language, collector.ApiKey, owm.WithHttpClient(client))
-	if err != nil {
-		log.Fatalln(err)
-	} else {
-		log.Infof("Collecting metrics from openweather API successful")
-	}
-
-	w.CurrentByCoordinates(&owm.Coordinates{Latitude: collector.Latitude, Longitude: collector.Longitude})
-
-	// Get Weather description out of Weather slice to pass as label
-	var weather_description string
-	for _, n := range w.Weather {
-		weather_description = n.Description
-	}
-
-	//Write latest value for each metric in the prometheus metric channel.
-	//Note that you can pass CounterValue, GaugeValue, or UntypedValue types here.
-	ch <- prometheus.MustNewConstMetric(collector.temperatureMetric, prometheus.GaugeValue, w.Main.Temp, collector.Location)
-	ch <- prometheus.MustNewConstMetric(collector.humidity, prometheus.GaugeValue, float64(w.Main.Humidity), collector.Location)
-	ch <- prometheus.MustNewConstMetric(collector.feelslike, prometheus.GaugeValue, w.Main.FeelsLike, collector.Location)
-	ch <- prometheus.MustNewConstMetric(collector.pressure, prometheus.GaugeValue, w.Main.Pressure, collector.Location)
-	ch <- prometheus.MustNewConstMetric(collector.windspeed, prometheus.GaugeValue, w.Wind.Speed, collector.Location)
-	ch <- prometheus.MustNewConstMetric(collector.rain1h, prometheus.GaugeValue, w.Rain.OneH, collector.Location)
-	ch <- prometheus.MustNewConstMetric(collector.winddegree, prometheus.GaugeValue, w.Wind.Deg, collector.Location)
-	ch <- prometheus.MustNewConstMetric(collector.cloudiness, prometheus.GaugeValue, float64(w.Clouds.All), collector.Location)
-	ch <- prometheus.MustNewConstMetric(collector.sunrise, prometheus.GaugeValue, float64(w.Sys.Sunrise), collector.Location)
-	ch <- prometheus.MustNewConstMetric(collector.sunset, prometheus.GaugeValue, float64(w.Sys.Sunset), collector.Location)
-	ch <- prometheus.MustNewConstMetric(collector.snow1h, prometheus.GaugeValue, w.Snow.OneH, collector.Location)
-	ch <- prometheus.MustNewConstMetric(collector.currentconditions, prometheus.GaugeValue, 0, collector.Location, weather_description)
 }
