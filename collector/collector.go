@@ -17,11 +17,11 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/codingsince1985/geo-golang/openstreetmap"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/billykwooten/openweather-exporter/geo"
 	owm "github.com/billykwooten/openweathermap"
-	"github.com/codingsince1985/geo-golang/openstreetmap"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -34,6 +34,8 @@ type OpenweatherCollector struct {
 	DegreesUnit       string
 	Language          string
 	Location          string
+	Latitude          float64
+	Longitude         float64
 	temperatureMetric *prometheus.Desc
 	humidity          *prometheus.Desc
 	feelslike         *prometheus.Desc
@@ -51,11 +53,20 @@ type OpenweatherCollector struct {
 //You must create a constructor for you collector that
 //initializes every descriptor and returns a pointer to the collector
 func NewOpenweatherCollector(degressUnit string, language string, apikey string, location string) *OpenweatherCollector {
+
+	// Get Coords.
+	latitude, longitude, err := geo.Get_coords(openstreetmap.Geocoder(), location)
+	if err != nil {
+		log.Fatalf("failed to resolve location:", err)
+	}
+
 	return &OpenweatherCollector{
 		ApiKey:      apikey,
 		DegreesUnit: degressUnit,
 		Language:    language,
 		Location:    location,
+		Latitude:    latitude,
+		Longitude:   longitude,
 		temperatureMetric: prometheus.NewDesc("openweather_temperature",
 			"Current temperature in degrees",
 			[]string{"location"}, nil,
@@ -127,8 +138,6 @@ func (collector *OpenweatherCollector) Describe(ch chan<- *prometheus.Desc) {
 
 //Collect implements required collect function for all prometheus collectors
 func (collector *OpenweatherCollector) Collect(ch chan<- prometheus.Metric) {
-	// Get Coords
-	latitude, longitude := geo.Get_coords(openstreetmap.Geocoder(), collector.Location)
 
 	// Setup HTTP Client
 	client := &http.Client{
@@ -143,7 +152,7 @@ func (collector *OpenweatherCollector) Collect(ch chan<- prometheus.Metric) {
 		log.Infof("Collecting metrics from openweather API successful")
 	}
 
-	w.CurrentByCoordinates(&owm.Coordinates{Longitude: longitude, Latitude: latitude})
+	w.CurrentByCoordinates(&owm.Coordinates{Latitude: collector.Latitude, Longitude: collector.Longitude})
 
 	// Get Weather description out of Weather slice to pass as label
 	var weather_description string
