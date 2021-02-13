@@ -25,7 +25,7 @@ func Get_coords(geocoder geo.Geocoder, city string) (float64, float64, error) {
 		return 0, 0, err
 	}
 
-	log.Infof("Latitude: %f Longitude: %f for %s found, collecting metrics", location.Lat, location.Lng, city)
+	log.Infof("Latitude: %f Longitude: %f for %s found", location.Lat, location.Lng, city)
 
 	return location.Lat, location.Lng, nil
 }

@@ -62,7 +62,7 @@ func resolveLocations(locations string) []Location {
 		// Get Coords.
 		latitude, longitude, err := geo.Get_coords(openstreetmap.Geocoder(), location)
 		if err != nil {
-			log.Fatalf("failed to resolve location:", err)
+			log.Fatal("failed to resolve location:", err)
 		}
 		res = append(res, Location{Location: location, Latitude: latitude, Longitude: longitude})
 	}
@@ -71,11 +71,11 @@ func resolveLocations(locations string) []Location {
 
 //You must create a constructor for you collector that
 //initializes every descriptor and returns a pointer to the collector
-func NewOpenweatherCollector(degressUnit string, language string, apikey string, locations string) *OpenweatherCollector {
+func NewOpenweatherCollector(degreesUnit string, language string, apikey string, locations string) *OpenweatherCollector {
 
 	return &OpenweatherCollector{
 		ApiKey:      apikey,
-		DegreesUnit: degressUnit,
+		DegreesUnit: degreesUnit,
 		Language:    language,
 		Locations:   resolveLocations(locations),
 		temperatureMetric: prometheus.NewDesc("openweather_temperature",
@@ -160,12 +160,14 @@ func (collector *OpenweatherCollector) Collect(ch chan<- prometheus.Metric) {
 		// Grab Metrics
 		w, err := owm.NewCurrent(collector.DegreesUnit, collector.Language, collector.ApiKey, owm.WithHttpClient(client))
 		if err != nil {
-			log.Fatalln(err)
-		} else {
-			log.Infof("Collecting metrics from openweather API successful")
+			log.Fatal("invalid openweather API configuration:", err)
 		}
 
-		w.CurrentByCoordinates(&owm.Coordinates{Latitude: location.Latitude, Longitude: location.Longitude})
+		err = w.CurrentByCoordinates(&owm.Coordinates{Latitude: location.Latitude, Longitude: location.Longitude})
+		if err != nil {
+			log.Infof("Collecting metrics failed for %s: %s", location.Location, err.Error())
+			continue
+		}
 
 		// Get Weather description out of Weather slice to pass as label
 		var weather_description string
