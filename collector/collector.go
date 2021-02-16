@@ -154,7 +154,7 @@ func (collector *OpenweatherCollector) Collect(ch chan<- prometheus.Metric) {
 
 		// Setup HTTP Client
 		client := &http.Client{
-			Timeout: 1 * time.Second,
+			Timeout: 30 * time.Second,
 		}
 
 		// Grab Metrics
