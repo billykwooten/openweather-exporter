@@ -20,9 +20,9 @@ resources: {}
   #   memory: 128Mi
 
 serviceMonitor:
-  # serviceMonitor.enable -- whether to also deploy the Service Monitor for usage with Prometheus Operator
+  # serviceMonitor.enable -- Whether to also deploy the Service Monitor for usage with Prometheus Operator
   enable: false
-  # serviceMonitor.scrapeFrequency -- scrape frequency to use for Prometheus configuration
+  # serviceMonitor.scrapeFrequency -- Interval at which metrics should be scraped
   scrapeFrequency: 5m
   # serviceMonitor.scrapeTimeout -- Timeout after which the scrape is ended
   scrapeTimeout: 30s
