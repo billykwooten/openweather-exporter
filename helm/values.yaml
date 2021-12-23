@@ -7,6 +7,10 @@ image:
 # env_vars -- additional environment variables defined for the container.
 env_vars: []
 
+serviceMonitor:
+  enable: false
+  scrapeFrequency: 5m
+
 ow:
   port: "9091"
   apiKey: ""
