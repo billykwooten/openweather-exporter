@@ -15,5 +15,4 @@ ow:
   port: "9091"
   apiKey: ""
   city: "New York, NY"
-  degressUnit: "F"
   language: "EN"

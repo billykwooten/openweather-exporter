@@ -8,5 +8,5 @@ metadata:
 data:
   OW_LISTEN_ADDRESS: ":{{ .Values.ow.port }}"
   OW_CITY: {{ .Values.ow.city }}
-  OW_DEGREES_UNIT: {{ .Values.ow.degressUnit }}
+  OW_DEGREES_UNIT: {{ .Values.ow.degreesUnit }}
   OW_LANGUAGE: {{ .Values.ow.language }}
