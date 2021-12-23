@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-{{ .Chart.Name }}
+  labels:
+    name: {{ .Release.Name }}-{{ .Chart.Name }}
+    app: {{ .Release.Name }}-{{ .Chart.Name }}
+spec:
+  selector:
+    app: {{ .Release.Name }}-{{ .Chart.Name }}
+  type: ClusterIP
+  ports:
+    - name: "metrics"
+      port: {{ .Values.ow.port }}
+      protocol: TCP
+      targetPort: {{ .Values.ow.port }}

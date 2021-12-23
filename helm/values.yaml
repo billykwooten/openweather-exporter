@@ -1,0 +1,44 @@
+image:
+  repository: billykwooten/openweather-exporter
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart version.
+  tag: "latest"
+
+# env_vars -- additional environment variables defined for the container.
+env_vars: []
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+serviceMonitor:
+  # serviceMonitor.enable -- Whether to also deploy the Service Monitor for usage with Prometheus Operator
+  enable: false
+  # serviceMonitor.scrapeFrequency -- Interval at which metrics should be scraped
+  scrapeFrequency: 5m
+  # serviceMonitor.scrapeTimeout -- Timeout after which the scrape is ended
+  scrapeTimeout: 30s
+  # serviceMonitor.serviceMonitorSelector -- Selector for Service Monitor to be picked up by Prometheus Operator
+  serviceMonitorSelector: {
+    release: prometheus
+  }
+
+ow:
+  # ow.port -- Port to expose /metrics on, used both in pod and for service
+  port: "9091"
+  # ow.apiKey -- Your Openweather API key
+  apiKey: ""
+  # ow.city -- City/Location in which to gather weather metrics. Separate multiple locations with | for example "New York, NY|Seattle, WA"
+  city: "New York, NY"
+  # ow.degreesUnit -- Unit in which to show metrics (Kelvin, Fahrenheit or Celsius)
+  degreesUnit: "F"
+  # ow.language -- Language in which to show metrics
+  language: "EN"
