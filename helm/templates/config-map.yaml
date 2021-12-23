@@ -1,0 +1,12 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: {{ .Release.Name }}-{{ .Chart.Name }}-cm
+  labels:
+    name: {{ .Release.Name }}-{{ .Chart.Name }}-cm
+    app: {{ .Release.Name }}-{{ .Chart.Name }}
+data:
+  OW_LISTEN_ADDRESS: ":{{ .Values.ow.port }}"
+  OW_CITY: {{ .Values.ow.city }}
+  OW_DEGREES_UNIT: {{ .Values.ow.degressUnit }}
+  OW_LANGUAGE: {{ .Values.ow.language }}

@@ -7,9 +7,9 @@ image:
 # env_vars -- additional environment variables defined for the container.
 env_vars: []
 
-listen_address: "9091"
 ow:
+  port: "9091"
   apiKey: ""
   city: "New York, NY"
-  degress_unit: "F"
+  degressUnit: "F"
   language: "EN"

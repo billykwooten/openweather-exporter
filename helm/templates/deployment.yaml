@@ -1,24 +1,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Release.Name }}-{{ .Chart.Name}}
+  name: {{ .Release.Name }}-{{ .Chart.Name }}
   labels:
-    name: {{ .Release.Name }}-{{ .Chart.Name}}
-    app: {{ .Release.Name }}-{{ .Chart.Name}}
+    name: {{ .Release.Name }}-{{ .Chart.Name }}
+    app: {{ .Release.Name }}-{{ .Chart.Name }}
 
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: {{ .Release.Name }}-{{ .Chart.Name}}
+      app: {{ .Release.Name }}-{{ .Chart.Name }}
   template:
     metadata:
       labels:
-        app: {{ .Release.Name }}-{{ .Chart.Name}}
+        app: {{ .Release.Name }}-{{ .Chart.Name }}
     spec:
       containers:
         - image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
-          name: {{ .Release.Name }}-{{ .Chart.Name}}
+          name: {{ .Release.Name }}-{{ .Chart.Name }}
           resources:
             requests:
               memory: "128Mi"
@@ -26,18 +26,13 @@ spec:
             limits:
               memory: "384Mi"
               cpu: "400m"
+          envFrom:
+            - configMapRef:
+                name: {{ .Release.Name }}-{{ .Chart.Name }}-cm
+            - secretRef:
+                name: {{ .Release.Name }}-{{ .Chart.Name }}-secret
           env:
             {{- range .Values.env_vars }}
             - name: {{ .name }}
               value: {{ .value }}
           {{- end }}
-            - name: OW_LISTEN_ADDRESS
-              value: "{{ .Values.listen_address }}"
-            - name: OW_APIKEY
-              value: {{ .Values.ow.apiKey }}
-            - name: OW_CITY
-              value: {{ .Values.ow.city }}
-            - name: OW_DEGREES_UNIT
-              value: {{ .Values.ow.degress_unit }}
-            - name: OW_LANGUAGE
-              value: {{ .Values.ow.language }}
