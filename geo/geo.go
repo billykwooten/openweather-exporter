@@ -29,3 +29,5 @@ func Get_coords(geocoder geo.Geocoder, city string) (float64, float64, error) {
 
 	return location.Lat, location.Lng, nil
 }
+
+func Get_coord_data()
