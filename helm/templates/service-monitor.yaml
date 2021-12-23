@@ -5,7 +5,7 @@ metadata:
   name: {{ .Release.Name }}-{{ .Chart.Name }}-servicemonitor
   labels:
     app: {{ .Release.Name }}-{{ .Chart.Name }}
-    release: prometheus
+    {{- toYaml .Values.serviceMonitor.serviceMonitorSelector | nindent 4 }}
 spec:
   selector:
     matchLabels:

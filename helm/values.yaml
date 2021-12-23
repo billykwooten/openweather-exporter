@@ -24,6 +24,10 @@ serviceMonitor:
   enable: false
   # serviceMonitor.scrapeFrequency -- scrape frequency to use for Prometheus configuration
   scrapeFrequency: 5m
+  # serviceMonitor.serviceMonitorSelector -- Selector for Service Monitor to be picked up by Prometheus Operator
+  serviceMonitorSelector: {
+    release: prometheus
+  }
 
 ow:
   # ow.port -- Port to expose /metrics on, used both in pod and for service
