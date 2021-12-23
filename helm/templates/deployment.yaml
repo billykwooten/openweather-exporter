@@ -20,12 +20,7 @@ spec:
         - image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
           name: {{ .Release.Name }}-{{ .Chart.Name }}
           resources:
-            requests:
-              memory: "128Mi"
-              cpu: "200m"
-            limits:
-              memory: "384Mi"
-              cpu: "400m"
+          {{- toYaml .Values.resources | nindent 12 }}
           envFrom:
             - configMapRef:
                 name: {{ .Release.Name }}-{{ .Chart.Name }}-cm
