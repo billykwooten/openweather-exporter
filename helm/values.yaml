@@ -24,6 +24,8 @@ serviceMonitor:
   enable: false
   # serviceMonitor.scrapeFrequency -- scrape frequency to use for Prometheus configuration
   scrapeFrequency: 5m
+  # serviceMonitor.scrapeTimeout -- Timeout after which the scrape is ended
+  scrapeTimeout: 30s
   # serviceMonitor.serviceMonitorSelector -- Selector for Service Monitor to be picked up by Prometheus Operator
   serviceMonitorSelector: {
     release: prometheus
