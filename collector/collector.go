@@ -26,10 +26,10 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-//Define a struct for you collector that contains pointers
-//to prometheus descriptors for each metric you wish to expose.
-//Note you can also include fields of other types if they provide utility
-//but we just won't be exposing them as metrics.
+// OpenweatherCollector Define a struct for your collector that contains pointers
+// to prometheus descriptors for each metric you wish to expose.
+// Note you can also include fields of other types if they provide utility,
+// but we just won't be exposing them as metrics.
 type OpenweatherCollector struct {
 	ApiKey            string
 	DegreesUnit       string
@@ -56,11 +56,11 @@ type Location struct {
 }
 
 func resolveLocations(locations string) []Location {
-	res := []Location{}
+	var res []Location
 
 	for _, location := range strings.Split(locations, "|") {
 		// Get Coords.
-		latitude, longitude, err := geo.Get_coords(openstreetmap.Geocoder(), location)
+		latitude, longitude, err := geo.GetCoords(openstreetmap.Geocoder(), location)
 		if err != nil {
 			log.Fatal("failed to resolve location:", err)
 		}
@@ -69,8 +69,8 @@ func resolveLocations(locations string) []Location {
 	return res
 }
 
-//You must create a constructor for you collector that
-//initializes every descriptor and returns a pointer to the collector
+// NewOpenweatherCollector You must create a constructor for your collector that
+// initializes every descriptor and returns a pointer to the collector
 func NewOpenweatherCollector(degreesUnit string, language string, apikey string, locations string) *OpenweatherCollector {
 
 	return &OpenweatherCollector{
@@ -129,11 +129,11 @@ func NewOpenweatherCollector(degreesUnit string, language string, apikey string,
 	}
 }
 
-//Each and every collector must implement the Describe function.
-//It essentially writes all descriptors to the prometheus desc channel.
+// Describe Each and every collector must implement the Describe function.
+// It essentially writes all descriptors to the prometheus desc channel.
 func (collector *OpenweatherCollector) Describe(ch chan<- *prometheus.Desc) {
 
-	//Update this section with the each metric you create for a given collector
+	//Update this section with the metric you create for a given collector
 	ch <- collector.temperatureMetric
 	ch <- collector.humidity
 	ch <- collector.feelslike
@@ -147,7 +147,7 @@ func (collector *OpenweatherCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- collector.currentconditions
 }
 
-//Collect implements required collect function for all prometheus collectors
+// Collect implements required collect function for all prometheus collectors
 func (collector *OpenweatherCollector) Collect(ch chan<- prometheus.Metric) {
 
 	for _, location := range collector.Locations {
@@ -170,13 +170,13 @@ func (collector *OpenweatherCollector) Collect(ch chan<- prometheus.Metric) {
 		}
 
 		// Get Weather description out of Weather slice to pass as label
-		var weather_description string
+		var weatherDescription string
 		for _, n := range w.Weather {
-			weather_description = n.Description
+			weatherDescription = n.Description
 		}
 
-		//Write latest value for each metric in the prometheus metric channel.
-		//Note that you can pass CounterValue, GaugeValue, or UntypedValue types here.
+		// Write the latest value for each metric in the prometheus metric channel.
+		// Note that you can pass CounterValue, GaugeValue, or UntypedValue types here.
 		ch <- prometheus.MustNewConstMetric(collector.temperatureMetric, prometheus.GaugeValue, w.Main.Temp, location.Location)
 		ch <- prometheus.MustNewConstMetric(collector.humidity, prometheus.GaugeValue, float64(w.Main.Humidity), location.Location)
 		ch <- prometheus.MustNewConstMetric(collector.feelslike, prometheus.GaugeValue, w.Main.FeelsLike, location.Location)
@@ -188,6 +188,6 @@ func (collector *OpenweatherCollector) Collect(ch chan<- prometheus.Metric) {
 		ch <- prometheus.MustNewConstMetric(collector.sunrise, prometheus.GaugeValue, float64(w.Sys.Sunrise), location.Location)
 		ch <- prometheus.MustNewConstMetric(collector.sunset, prometheus.GaugeValue, float64(w.Sys.Sunset), location.Location)
 		ch <- prometheus.MustNewConstMetric(collector.snow1h, prometheus.GaugeValue, w.Snow.OneH, location.Location)
-		ch <- prometheus.MustNewConstMetric(collector.currentconditions, prometheus.GaugeValue, 0, location.Location, weather_description)
+		ch <- prometheus.MustNewConstMetric(collector.currentconditions, prometheus.GaugeValue, 0, location.Location, weatherDescription)
 	}
 }

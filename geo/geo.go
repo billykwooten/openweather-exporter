@@ -19,7 +19,7 @@ import (
 	"github.com/codingsince1985/geo-golang"
 )
 
-func Get_coords(geocoder geo.Geocoder, city string) (float64, float64, error) {
+func GetCoords(geocoder geo.Geocoder, city string) (float64, float64, error) {
 	location, err := geocoder.Geocode(city)
 	if err != nil {
 		return 0, 0, err

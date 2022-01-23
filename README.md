@@ -1,7 +1,10 @@
 # OpenWeather Exporter
 ![Docker Pulls](https://img.shields.io/docker/pulls/billykwooten/openweather-exporter.svg)
 ![Docker Automated](https://img.shields.io/docker/cloud/automated/billykwooten/openweather-exporter.svg)
+[![report](https://goreportcard.com/badge/github.com/billykwooten/openweather-exporter)](https://goreportcard.com/report/github.com/billykwooten/openweather-exporter)
 ![Docker Build](https://img.shields.io/docker/cloud/build/billykwooten/openweather-exporter.svg)
+[![license](https://img.shields.io/github/license/billykwooten/openweather-exporter.svg)](https://github.com/billykwooten/openweather-exporter/blob/main/LICENSE)
+[![release](https://img.shields.io/github/release/billykwooten/openweather-exporter/all.svg)](https://github.com/billykwooten/openweather-exporter/releases)
 
 Prometheus exporter for [openweather API](https://openweathermap.org/api)
 
