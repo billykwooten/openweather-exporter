@@ -44,13 +44,13 @@ func main() {
 
 	log.SetFormatter(formatter)
 
-	//Create a new instance of the weatherCollector and
-	//register it with the prometheus client.
+	// Create a new instance of the weatherCollector and
+	// register it with the prometheus client.
 	weatherCollector := collector.NewOpenweatherCollector(*degreesUnit, *language, *apiKey, *city)
 	prometheus.MustRegister(weatherCollector)
 
-	//This section will start the HTTP server and expose
-	//any metrics on the /metrics endpoint.
+	// This section will start the HTTP server and expose
+	// any metrics on the /metrics endpoint.
 	http.Handle("/metrics", promhttp.Handler())
 	log.Info("Beginning to serve on port " + *addr)
 	log.Fatal(http.ListenAndServe(*addr, nil))
