@@ -66,6 +66,26 @@ scrape_configs:
       - targets: ['openweather-exporter:9091']
 ```
 
+## Collectors
+
+Openweather exporter metrics that are collected by default.
+
+| Name        	                   | Description                                               |
+|---------------------------------|-----------------------------------------------------------|
+| `openweather_temperature`       | `Current temperature in degrees`                          |
+| `openweather_humidity`          | `Current relative humidity`                               |
+| `openweather_feelslike`         | `Current feels_like temperature in degrees (heat index)`  |
+| `openweather_pressure`          | `Current Atmospheric pressure hPa`                        |
+| `openweather_windspeed`         | `Current Wind Speed in mph or meters/sec if imperial`     |
+| `openweather_rain1h`            | `Rain volume for last hour, in millimeters`               |
+| `openweather_snow1h`            | `Snow volume for last hour, in millimeters`               |
+| `openweather_winddegree`        | `Wind direction, degrees (meteorological)`                |
+| `openweather_cloudiness`        | `Cloudiness in percentage`                                |
+| `openweather_sunrise`           | `Sunrise time, unix, UTC`                                 |
+| `openweather_sunset`            | `Sunset time, unix, UTC`                                  |
+| `openweather_currentconditions` | `Current weather conditions (sunny, cloudy, rainy, etc.)` |
+
+
 ## Grafana
 
 I have created a grafana dashboard for this exporter, feel free to use it. Link below.
