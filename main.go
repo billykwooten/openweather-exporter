@@ -16,10 +16,13 @@ package main
 import (
 	"net/http"
 	"os"
+	"strconv"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 
 	"github.com/billykwooten/openweather-exporter/collector"
+	"github.com/jellydator/ttlcache/v2"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"gopkg.in/alecthomas/kingpin.v2"
@@ -32,6 +35,7 @@ var (
 	city        = app.Flag("city", "City for Openweather to gather metrics from.").Envar("OW_CITY").Default("New York, NY").String()
 	degreesUnit = app.Flag("degrees-unit", "The base unit for temperature output. Fahrenheit or Celsius. (Default: F)").Envar("OW_DEGREES_UNIT").Default("F").String()
 	language    = app.Flag("language", "The language for metric output. (Default: EN)").Envar("OW_LANGUAGE").Default("EN").String()
+	cacheTTL    = app.Flag("cache-ttl", "Cache time-to-live in seconds. (Default: 300)").Envar("OW_CACHE_TTL").Default("300").String()
 )
 
 func main() {
@@ -44,9 +48,17 @@ func main() {
 
 	log.SetFormatter(formatter)
 
-	// Create a new instance of the weatherCollector and
+	// Create a new instance of the weatherCollector with caching and
 	// register it with the prometheus client.
-	weatherCollector := collector.NewOpenweatherCollector(*degreesUnit, *language, *apiKey, *city)
+	cache := ttlcache.NewCache()
+	ttl, err := strconv.ParseUint(*cacheTTL, 10, 64)
+	if err != nil {
+		log.Fatal("Invalid TTL value: ", err)
+	}
+	cache.SetTTL(time.Duration(ttl) * time.Second)
+	cache.SkipTTLExtensionOnHit(true)
+
+	weatherCollector := collector.NewOpenweatherCollector(*degreesUnit, *language, *apiKey, *city, cache)
 	prometheus.MustRegister(weatherCollector)
 
 	// This section will start the HTTP server and expose

@@ -10,3 +10,4 @@ data:
   OW_CITY: {{ .Values.ow.city }}
   OW_DEGREES_UNIT: {{ .Values.ow.degreesUnit }}
   OW_LANGUAGE: {{ .Values.ow.language }}
+  OW_CACHE_TTL: {{ .Values.ow.cacheTTL }}

@@ -5,7 +5,6 @@ metadata:
   labels:
     name: {{ .Release.Name }}-{{ .Chart.Name }}
     app: {{ .Release.Name }}-{{ .Chart.Name }}
-
 spec:
   replicas: 1
   selector:

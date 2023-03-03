@@ -14,6 +14,7 @@
 package collector
 
 import (
+	"github.com/jellydator/ttlcache/v2"
 	"net/http"
 	"strings"
 	"time"
@@ -30,8 +31,11 @@ import (
 // to prometheus descriptors for each metric you wish to expose.
 // Note you can also include fields of other types if they provide utility,
 // but we just won't be exposing them as metrics.
+var notFound = ttlcache.ErrNotFound
+
 type OpenweatherCollector struct {
 	ApiKey            string
+	Cache             *ttlcache.Cache
 	DegreesUnit       string
 	Language          string
 	Locations         []Location
@@ -71,13 +75,14 @@ func resolveLocations(locations string) []Location {
 
 // NewOpenweatherCollector You must create a constructor for your collector that
 // initializes every descriptor and returns a pointer to the collector
-func NewOpenweatherCollector(degreesUnit string, language string, apikey string, locations string) *OpenweatherCollector {
+func NewOpenweatherCollector(degreesUnit string, language string, apikey string, locations string, cache *ttlcache.Cache) *OpenweatherCollector {
 
 	return &OpenweatherCollector{
 		ApiKey:      apikey,
 		DegreesUnit: degreesUnit,
 		Language:    language,
 		Locations:   resolveLocations(locations),
+		Cache:       cache,
 		temperatureMetric: prometheus.NewDesc("openweather_temperature",
 			"Current temperature in degrees",
 			[]string{"location"}, nil,
@@ -149,24 +154,34 @@ func (collector *OpenweatherCollector) Describe(ch chan<- *prometheus.Desc) {
 
 // Collect implements required collect function for all prometheus collectors
 func (collector *OpenweatherCollector) Collect(ch chan<- prometheus.Metric) {
-
 	for _, location := range collector.Locations {
+		var w *owm.CurrentWeatherData
 
 		// Setup HTTP Client
 		client := &http.Client{
 			Timeout: 30 * time.Second,
 		}
 
-		// Grab Metrics
-		w, err := owm.NewCurrent(collector.DegreesUnit, collector.Language, collector.ApiKey, owm.WithHttpClient(client))
-		if err != nil {
-			log.Fatal("invalid openweather API configuration:", err)
-		}
+		if val, err := collector.Cache.Get("OWM"); err != notFound || val != nil {
+			// Grab Metrics from Cache
+			w = val.(*owm.CurrentWeatherData)
+		} else {
+			// Grab Metrics
+			w, err = owm.NewCurrent(collector.DegreesUnit, collector.Language, collector.ApiKey, owm.WithHttpClient(client))
+			if err != nil {
+				log.Fatal("invalid openweather API configuration:", err)
+			}
+			err = w.CurrentByCoordinates(&owm.Coordinates{Latitude: location.Latitude, Longitude: location.Longitude})
+			if err != nil {
+				log.Infof("Collecting metrics failed for %s: %s", location.Location, err.Error())
+				continue
+			}
+			err = collector.Cache.Set("OWM", w)
+			if err != nil {
+				log.Infof("Could not set cache data. %s", err.Error())
+				continue
+			}
 
-		err = w.CurrentByCoordinates(&owm.Coordinates{Latitude: location.Latitude, Longitude: location.Longitude})
-		if err != nil {
-			log.Infof("Collecting metrics failed for %s: %s", location.Location, err.Error())
-			continue
 		}
 
 		// Get Weather description out of Weather slice to pass as label
