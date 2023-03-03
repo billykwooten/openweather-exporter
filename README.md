@@ -20,7 +20,9 @@ Prometheus exporter for [openweather API](https://openweathermap.org/api)
 
 ## Configuration
 
-Openweather exporter can be controlled by both ENV or CLI flags as described below.
+Openweather exporter can be controlled by both ENV or CLI flags as described below. 
+
+Enabling `OW_ENABLE_POL` will call the API more times to pull pollution/air quality data, be weary of your API calls, so you do not get charged. See openweather pricing [here](https://openweathermap.org/price).
 
 | Environment        	 | CLI (`--flag`)   | Default                 	 | Description                                                                          |
 |----------------------|------------------|---------------------------|--------------------------------------------------------------------------------------|
@@ -29,14 +31,15 @@ Openweather exporter can be controlled by both ENV or CLI flags as described bel
 | `OW_CITY`            | `city`           | `New York, NY`            | City/Location in which to gather weather metrics. Separate multiple locations with \ | for example "New York, NY\|Seattle, WA" |
 | `OW_DEGREES_UNIT`    | `degrees-unit`   | `F`                       | Unit in which to show metrics (Kelvin, Fahrenheit or Celsius)                        |
 | `OW_LANGUAGE`        | `language`       | `EN`                      | Language in which to show metrics                                                    |
-| `OW_CACHE_TTL`       | `cacheTTL`       | `300`                     | Time to Live Caching Time in Seconds                                                 |
+| `OW_CACHE_TTL`       | `cache-ttl`      | `300`                     | Time to Live Caching Time in Seconds                                                 |
+| `OW_ENABLE_POL`      | `enable-pol`     | `false (bool)`            | Enable Pollution Metrics.                                                            |
 
 ## Usage
 
 Binary Usage
 ```
-# Export weather metrics from Seattle using binary
-./openweather-exporter --city "Seattle, WA" --apikey mi4o2n54i0510n4510
+# Export weather metrics from Seattle using binary & pollution metrics on
+./openweather-exporter --city "Seattle, WA" --apikey mi4o2n54i0510n4510 --enable-pol
 ```
 
 Docker Usage
@@ -56,6 +59,7 @@ Docker-compose Usage
     environment:
       - OW_CITY=New York, NY
       - OW_APIKEY=mi4o2n54i0510n4510
+      - OW_ENABLE_POL=true
 ```
 
 Prometheus Scrape Usage
@@ -71,20 +75,34 @@ scrape_configs:
 
 Openweather exporter metrics that are collected by default.
 
-| Name        	                   | Description                                               |
-|---------------------------------|-----------------------------------------------------------|
-| `openweather_temperature`       | `Current temperature in degrees`                          |
-| `openweather_humidity`          | `Current relative humidity`                               |
-| `openweather_feelslike`         | `Current feels_like temperature in degrees (heat index)`  |
-| `openweather_pressure`          | `Current Atmospheric pressure hPa`                        |
-| `openweather_windspeed`         | `Current Wind Speed in mph or meters/sec if imperial`     |
-| `openweather_rain1h`            | `Rain volume for last hour, in millimeters`               |
-| `openweather_snow1h`            | `Snow volume for last hour, in millimeters`               |
-| `openweather_winddegree`        | `Wind direction, degrees (meteorological)`                |
-| `openweather_cloudiness`        | `Cloudiness in percentage`                                |
-| `openweather_sunrise`           | `Sunrise time, unix, UTC`                                 |
-| `openweather_sunset`            | `Sunset time, unix, UTC`                                  |
-| `openweather_currentconditions` | `Current weather conditions (sunny, cloudy, rainy, etc.)` |
+| Name        	                   | Description                                                                  |
+|---------------------------------|------------------------------------------------------------------------------|
+| `openweather_temperature`       | `Current temperature in degrees`                                             |
+| `openweather_humidity`          | `Current relative humidity`                                                  |
+| `openweather_feelslike`         | `Current feels_like temperature in degrees (heat index)`                     |
+| `openweather_pressure`          | `Current Atmospheric pressure hPa`                                           |
+| `openweather_windspeed`         | `Current Wind Speed in mph or meters/sec if imperial`                        |
+| `openweather_rain1h`            | `Rain volume for last hour, in millimeters`                                  |
+| `openweather_snow1h`            | `Snow volume for last hour, in millimeters`                                  |
+| `openweather_winddegree`        | `Wind direction, degrees (meteorological)`                                   |
+| `openweather_cloudiness`        | `Cloudiness in percentage`                                                   |
+| `openweather_sunrise`           | `Sunrise time, unix, UTC`                                                    |
+| `openweather_sunset`            | `Sunset time, unix, UTC`                                                     |
+| `openweather_currentconditions` | `Current weather conditions (sunny, cloudy, rainy, etc.)`                    |
+
+If you enable pollution metrics, the following metrics will be enabled.
+
+| Name        	                            | Description                                                                     |
+|------------------------------------------|---------------------------------------------------------------------------------|
+| `openweather_pollution_airqualityindex`  | `Air Quality Index. 1 = Good, 2 = Fair, 3 = Moderate, 4 = Poor, 5 = Very Poor.` |
+| `openweather_pollution_carbonmonoxide`   | `Concentration of CO (Carbon Monoxide) μg/m3`                                   |
+| `openweather_pollution_nitrogenmonoxide` | `Concentration of NO (Nitrogen Monoxide) μg/m3`                                 |
+| `openweather_pollution_nitrogendioxide`  | `Concentration of NO2 (Nitrogen Dioxide) μg/m3`                                 |
+| `openweather_pollution_ozone`            | `Concentration of O3 (Ozone) μg/m3`                                             |
+| `openweather_pollution_sulphurdioxide`   | `Concentration of SO2 (Sulphur Dioxide) μg/m3`                                  |
+| `openweather_pollution_pm25`             | `Concentration of PM2.5 (Fine particles matter) μg/m3`                          |
+| `openweather_pollution_pm10`             | `Concentration of PM10 (Coarse particles matter) μg/m3`                         |
+| `openweather_pollution_nh3`              | `Concentration of NH3 (Ammonia) μg/m3`                                          |
 
 
 ## Grafana

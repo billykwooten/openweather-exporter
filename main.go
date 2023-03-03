@@ -29,6 +29,7 @@ import (
 )
 
 var (
+	// Default App Flags
 	app         = kingpin.New("openweather-exporter", "Openweather Exporter for Openweather API").Author("Billy Wooten")
 	addr        = app.Flag("listen-address", "HTTP port to listen on. (Default 9091)").Envar("OW_LISTEN_ADDRESS").Default(":9091").String()
 	apiKey      = app.Flag("apikey", "Openweather API Key").Envar("OW_APIKEY").Required().String()
@@ -36,6 +37,9 @@ var (
 	degreesUnit = app.Flag("degrees-unit", "The base unit for temperature output. Fahrenheit or Celsius. (Default: F)").Envar("OW_DEGREES_UNIT").Default("F").String()
 	language    = app.Flag("language", "The language for metric output. (Default: EN)").Envar("OW_LANGUAGE").Default("EN").String()
 	cacheTTL    = app.Flag("cache-ttl", "Cache time-to-live in seconds. (Default: 300)").Envar("OW_CACHE_TTL").Default("300").String()
+
+	// Extra App Flags
+	enablePol = app.Flag("enable-pol", "Enable Pollution Metrics. (Default: false)").Envar("OW_ENABLE_POL").Default("false").Bool()
 )
 
 func main() {
@@ -58,7 +62,7 @@ func main() {
 	cache.SetTTL(time.Duration(ttl) * time.Second)
 	cache.SkipTTLExtensionOnHit(true)
 
-	weatherCollector := collector.NewOpenweatherCollector(*degreesUnit, *language, *apiKey, *city, cache)
+	weatherCollector := collector.NewOpenweatherCollector(*degreesUnit, *language, *apiKey, *city, cache, *enablePol)
 	prometheus.MustRegister(weatherCollector)
 
 	// This section will start the HTTP server and expose
