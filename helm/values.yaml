@@ -42,3 +42,5 @@ ow:
   degreesUnit: "F"
   # ow.language -- Language in which to show metrics
   language: "EN"
+  # cache TTL -- cache in seconds TTL
+  cacheTTL: 300
