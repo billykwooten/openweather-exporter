@@ -33,13 +33,14 @@ Enabling `OW_ENABLE_POL` will call the API more times to pull pollution/air qual
 | `OW_LANGUAGE`        | `language`       | `EN`                      | Language in which to show metrics                                                    |
 | `OW_CACHE_TTL`       | `cache-ttl`      | `300`                     | Time to Live Caching Time in Seconds                                                 |
 | `OW_ENABLE_POL`      | `enable-pol`     | `false (bool)`            | Enable Pollution Metrics.                                                            |
+| `OW_ENABLE_UV`       | `enable-uv`      | `false (bool)`            | Enable Ultraviolet Index Metrics.                                                    |
 
 ## Usage
 
 Binary Usage
 ```
-# Export weather metrics from Seattle using binary & pollution metrics on
-./openweather-exporter --city "Seattle, WA" --apikey mi4o2n54i0510n4510 --enable-pol
+# Export weather metrics from Seattle using binary & pollution/UV metrics on
+./openweather-exporter --city "Seattle, WA" --apikey mi4o2n54i0510n4510 --enable-pol --enable-uv
 ```
 
 Docker Usage
@@ -60,6 +61,8 @@ Docker-compose Usage
       - OW_CITY=New York, NY
       - OW_APIKEY=mi4o2n54i0510n4510
       - OW_ENABLE_POL=true
+      - OW_ENABLE_UV=true
+
 ```
 
 Prometheus Scrape Usage
@@ -103,6 +106,12 @@ If you enable pollution metrics, the following metrics will be enabled.
 | `openweather_pollution_pm25`             | `Concentration of PM2.5 (Fine particles matter) μg/m3`                          |
 | `openweather_pollution_pm10`             | `Concentration of PM10 (Coarse particles matter) μg/m3`                         |
 | `openweather_pollution_nh3`              | `Concentration of NH3 (Ammonia) μg/m3`                                          |
+
+If you enable Ultraviolet Index metrics, the following metrics will be enabled.
+
+| Name        	                   | Description         |
+|---------------------------------|---------------------|
+| `openweather_ultraviolet_index` | `Ultraviolet Index` |
 
 
 ## Grafana

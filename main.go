@@ -40,6 +40,7 @@ var (
 
 	// Extra App Flags
 	enablePol = app.Flag("enable-pol", "Enable Pollution Metrics. (Default: false)").Envar("OW_ENABLE_POL").Default("false").Bool()
+	enableUV  = app.Flag("enable-uv", "Enable Ultraviolet Index Metrics. (Default: false)").Envar("OW_ENABLE_UV").Default("false").Bool()
 )
 
 func main() {
@@ -62,7 +63,15 @@ func main() {
 	cache.SetTTL(time.Duration(ttl) * time.Second)
 	cache.SkipTTLExtensionOnHit(true)
 
-	weatherCollector := collector.NewOpenweatherCollector(*degreesUnit, *language, *apiKey, *city, cache, *enablePol)
+	// Add some logging for extra collectors
+	if *enablePol {
+		log.Info("Pollution metrics enabled, this will call the API more than once per call.")
+	}
+	if *enableUV {
+		log.Info("Ultraviolet Index metrics enabled, this will call the API more than once per call.")
+	}
+
+	weatherCollector := collector.NewOpenweatherCollector(*degreesUnit, *language, *apiKey, *city, cache, *enablePol, *enableUV)
 	prometheus.MustRegister(weatherCollector)
 
 	// This section will start the HTTP server and expose

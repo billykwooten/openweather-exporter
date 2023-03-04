@@ -37,6 +37,7 @@ type OpenweatherCollector struct {
 	ApiKey            string
 	Cache             *ttlcache.Cache
 	enablePol         bool
+	enableUV          bool
 	DegreesUnit       string
 	Language          string
 	Locations         []Location
@@ -61,6 +62,7 @@ type OpenweatherCollector struct {
 	Pm25              *prometheus.Desc
 	Pm10              *prometheus.Desc
 	Nh3               *prometheus.Desc
+	UVI               *prometheus.Desc
 }
 
 type Location struct {
@@ -85,7 +87,7 @@ func resolveLocations(locations string) []Location {
 
 // NewOpenweatherCollector You must create a constructor for your collector that
 // initializes every descriptor and returns a pointer to the collector
-func NewOpenweatherCollector(degreesUnit string, language string, apikey string, locations string, cache *ttlcache.Cache, enablePol bool) *OpenweatherCollector {
+func NewOpenweatherCollector(degreesUnit string, language string, apikey string, locations string, cache *ttlcache.Cache, enablePol bool, enableUV bool) *OpenweatherCollector {
 
 	return &OpenweatherCollector{
 		ApiKey:      apikey,
@@ -94,6 +96,7 @@ func NewOpenweatherCollector(degreesUnit string, language string, apikey string,
 		Locations:   resolveLocations(locations),
 		Cache:       cache,
 		enablePol:   enablePol,
+		enableUV:    enableUV,
 		temperatureMetric: prometheus.NewDesc("openweather_temperature",
 			"Current temperature in degrees",
 			[]string{"location"}, nil,
@@ -178,6 +181,10 @@ func NewOpenweatherCollector(degreesUnit string, language string, apikey string,
 			"Concentration of NH3 (Ammonia) μg/m3",
 			[]string{"location"}, nil,
 		),
+		UVI: prometheus.NewDesc("openweather_ultraviolet_index",
+			"Ultraviolet Index",
+			[]string{"location"}, nil,
+		),
 	}
 }
 
@@ -206,6 +213,7 @@ func (collector *OpenweatherCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- collector.Pm25
 	ch <- collector.Pm10
 	ch <- collector.Nh3
+	ch <- collector.UVI
 
 }
 
@@ -214,6 +222,7 @@ func (collector *OpenweatherCollector) Collect(ch chan<- prometheus.Metric) {
 	for _, location := range collector.Locations {
 		var w *owm.CurrentWeatherData
 		var pd *owm.Pollution
+		var uuv *owm.UV
 
 		// Setup HTTP Client
 		client := &http.Client{
@@ -227,6 +236,11 @@ func (collector *OpenweatherCollector) Collect(ch chan<- prometheus.Metric) {
 			if collector.enablePol == true {
 				if pval, err := collector.Cache.Get("POWM"); err != notFound || pval != nil {
 					pd = pval.(*owm.Pollution)
+				}
+			}
+			if collector.enableUV == true {
+				if uvval, err := collector.Cache.Get("UVOWM"); err != notFound || uvval != nil {
+					uuv = uvval.(*owm.UV)
 				}
 			}
 		} else {
@@ -262,6 +276,23 @@ func (collector *OpenweatherCollector) Collect(ch chan<- prometheus.Metric) {
 					continue
 				}
 			}
+			if collector.enableUV == true {
+				uuv, err = owm.NewUV(collector.ApiKey, owm.WithHttpClient(client))
+				if err != nil {
+					log.Warnf("Collecting UV metrics failed for %s: %s", location.Location, err.Error())
+					continue
+				}
+				err = uuv.Current(&owm.Coordinates{Latitude: location.Latitude, Longitude: location.Longitude})
+				if err != nil {
+					log.Infof("Collecting UV metrics failed for %s: %s", location.Location, err.Error())
+					continue
+				}
+				err = collector.Cache.Set("UVOWM", uuv)
+				if err != nil {
+					log.Infof("Could not set UV cache data. %s", err.Error())
+					continue
+				}
+			}
 		}
 
 		// Get Weather description out of Weather slice to pass as label
@@ -294,6 +325,9 @@ func (collector *OpenweatherCollector) Collect(ch chan<- prometheus.Metric) {
 			ch <- prometheus.MustNewConstMetric(collector.Pm25, prometheus.GaugeValue, pd.List[0].Components.Pm25, location.Location)
 			ch <- prometheus.MustNewConstMetric(collector.Pm10, prometheus.GaugeValue, pd.List[0].Components.Pm10, location.Location)
 			ch <- prometheus.MustNewConstMetric(collector.Nh3, prometheus.GaugeValue, pd.List[0].Components.Nh3, location.Location)
+		}
+		if collector.enableUV == true {
+			ch <- prometheus.MustNewConstMetric(collector.UVI, prometheus.GaugeValue, uuv.Value, location.Location)
 		}
 	}
 }
