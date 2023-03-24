@@ -42,5 +42,9 @@ ow:
   degreesUnit: "F"
   # ow.language -- Language in which to show metrics
   language: "EN"
-  # cache TTL -- cache in seconds TTL
-  cacheTTL: 300
+  # ow.cacheTTL -- cache in seconds TTL
+  cacheTTL: "300"
+  # ow.enablePol -- Enable Pollution Metrics
+  enablePol: "true"
+  # ow.enableUv -- Enable UV Metrics
+  enableUv: "true"
