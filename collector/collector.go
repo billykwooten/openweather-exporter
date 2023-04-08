@@ -68,9 +68,12 @@ type OpenweatherCollector struct {
 }
 
 type Location struct {
-	Location  string
-	Latitude  float64
-	Longitude float64
+	Location      string
+	Latitude      float64
+	Longitude     float64
+	CacheKeyOWM   string
+	CacheKeyPOWM  string
+	CacheKeyUVOWM string
 }
 
 func resolveLocations(locations string) []Location {
@@ -82,7 +85,10 @@ func resolveLocations(locations string) []Location {
 		if err != nil {
 			log.Fatal("failed to resolve location:", err)
 		}
-		res = append(res, Location{Location: location, Latitude: latitude, Longitude: longitude})
+		cacheKeyOWM := fmt.Sprintf("OWM %s", location)
+		cacheKeyPOWM := fmt.Sprintf("POWM %s", location)
+		cacheKeyUVOWM := fmt.Sprintf("UVOWM %s", location)
+		res = append(res, Location{Location: location, Latitude: latitude, Longitude: longitude, CacheKeyOWM: cacheKeyOWM, CacheKeyPOWM: cacheKeyPOWM, CacheKeyUVOWM: cacheKeyUVOWM})
 	}
 	return res
 }
@@ -231,17 +237,17 @@ func (collector *OpenweatherCollector) Collect(ch chan<- prometheus.Metric) {
 			Timeout: 30 * time.Second,
 		}
 
-		if val, err := collector.Cache.Get(fmt.Sprintf("OWM %s", location.Location)); err != notFound || val != nil {
+		if val, err := collector.Cache.Get(location.CacheKeyOWM); err != notFound || val != nil {
 			// Grab Metrics from cache
 			w = val.(*owm.CurrentWeatherData)
 			// Grab pollution metrics from cache if enabled
 			if collector.enablePol == true {
-				if pval, err := collector.Cache.Get(fmt.Sprintf("POWM %s", location.Location)); err != notFound || pval != nil {
+				if pval, err := collector.Cache.Get(location.CacheKeyPOWM); err != notFound || pval != nil {
 					pd = pval.(*owm.Pollution)
 				}
 			}
 			if collector.enableUV == true {
-				if uvval, err := collector.Cache.Get(fmt.Sprintf("UVOWM %s", location.Location)); err != notFound || uvval != nil {
+				if uvval, err := collector.Cache.Get(location.CacheKeyUVOWM); err != notFound || uvval != nil {
 					uuv = uvval.(*owm.UV)
 				}
 			}
@@ -256,7 +262,7 @@ func (collector *OpenweatherCollector) Collect(ch chan<- prometheus.Metric) {
 				log.Infof("Collecting metrics failed for %s: %s", location.Location, err.Error())
 				continue
 			}
-			err = collector.Cache.Set(fmt.Sprintf("OWM %s", location.Location), w)
+			err = collector.Cache.Set(location.CacheKeyOWM, w)
 			if err != nil {
 				log.Infof("Could not set cache data. %s", err.Error())
 				continue
@@ -272,7 +278,7 @@ func (collector *OpenweatherCollector) Collect(ch chan<- prometheus.Metric) {
 					log.Infof("Collecting pollution metrics failed for %s: %s", location.Location, err.Error())
 					continue
 				}
-				err = collector.Cache.Set(fmt.Sprintf("POWM %s", location.Location), pd)
+				err = collector.Cache.Set(location.CacheKeyPOWM, pd)
 				if err != nil {
 					log.Infof("Could not set pollution cache data. %s", err.Error())
 					continue
@@ -289,7 +295,7 @@ func (collector *OpenweatherCollector) Collect(ch chan<- prometheus.Metric) {
 					log.Infof("Collecting UV metrics failed for %s: %s", location.Location, err.Error())
 					continue
 				}
-				err = collector.Cache.Set(fmt.Sprintf("UVOWM %s", location.Location), uuv)
+				err = collector.Cache.Set(location.CacheKeyUVOWM, uuv)
 				if err != nil {
 					log.Infof("Could not set UV cache data. %s", err.Error())
 					continue
