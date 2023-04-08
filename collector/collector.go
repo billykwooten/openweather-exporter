@@ -14,10 +14,12 @@
 package collector
 
 import (
-	"github.com/jellydator/ttlcache/v2"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/jellydator/ttlcache/v2"
 
 	"github.com/codingsince1985/geo-golang/openstreetmap"
 	log "github.com/sirupsen/logrus"
@@ -229,17 +231,17 @@ func (collector *OpenweatherCollector) Collect(ch chan<- prometheus.Metric) {
 			Timeout: 30 * time.Second,
 		}
 
-		if val, err := collector.Cache.Get("OWM"); err != notFound || val != nil {
+		if val, err := collector.Cache.Get(fmt.Sprintf("OWM %s", location.Location)); err != notFound || val != nil {
 			// Grab Metrics from cache
 			w = val.(*owm.CurrentWeatherData)
 			// Grab pollution metrics from cache if enabled
 			if collector.enablePol == true {
-				if pval, err := collector.Cache.Get("POWM"); err != notFound || pval != nil {
+				if pval, err := collector.Cache.Get(fmt.Sprintf("POWM %s", location.Location)); err != notFound || pval != nil {
 					pd = pval.(*owm.Pollution)
 				}
 			}
 			if collector.enableUV == true {
-				if uvval, err := collector.Cache.Get("UVOWM"); err != notFound || uvval != nil {
+				if uvval, err := collector.Cache.Get(fmt.Sprintf("UVOWM %s", location.Location)); err != notFound || uvval != nil {
 					uuv = uvval.(*owm.UV)
 				}
 			}
@@ -254,7 +256,7 @@ func (collector *OpenweatherCollector) Collect(ch chan<- prometheus.Metric) {
 				log.Infof("Collecting metrics failed for %s: %s", location.Location, err.Error())
 				continue
 			}
-			err = collector.Cache.Set("OWM", w)
+			err = collector.Cache.Set(fmt.Sprintf("OWM %s", location.Location), w)
 			if err != nil {
 				log.Infof("Could not set cache data. %s", err.Error())
 				continue
@@ -270,7 +272,7 @@ func (collector *OpenweatherCollector) Collect(ch chan<- prometheus.Metric) {
 					log.Infof("Collecting pollution metrics failed for %s: %s", location.Location, err.Error())
 					continue
 				}
-				err = collector.Cache.Set("POWM", pd)
+				err = collector.Cache.Set(fmt.Sprintf("POWM %s", location.Location), pd)
 				if err != nil {
 					log.Infof("Could not set pollution cache data. %s", err.Error())
 					continue
@@ -287,7 +289,7 @@ func (collector *OpenweatherCollector) Collect(ch chan<- prometheus.Metric) {
 					log.Infof("Collecting UV metrics failed for %s: %s", location.Location, err.Error())
 					continue
 				}
-				err = collector.Cache.Set("UVOWM", uuv)
+				err = collector.Cache.Set(fmt.Sprintf("UVOWM %s", location.Location), uuv)
 				if err != nil {
 					log.Infof("Could not set UV cache data. %s", err.Error())
 					continue
