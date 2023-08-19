@@ -71,7 +71,10 @@ func main() {
 		log.Info("Ultraviolet Index metrics enabled, this will call the API more than once per call.")
 	}
 
-	weatherCollector := collector.NewOpenweatherCollector(*degreesUnit, *language, *apiKey, *city, cache, *enablePol, *enableUV)
+	settings := collector.Settings{
+		DegreesUnit: *degreesUnit, Language: *language, ApiKey: *apiKey,
+	}
+	weatherCollector := collector.NewOpenweatherCollector(&settings, *city, cache)
 	prometheus.MustRegister(weatherCollector)
 
 	// This section will start the HTTP server and expose
