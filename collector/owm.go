@@ -19,11 +19,22 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 var (
 	DataUnits = map[string]string{"C": "metric", "F": "imperial", "K": "internal"}
+
+	apiCallCounter = prometheus.NewCounterVec(prometheus.CounterOpts{
+		Name: "openweather_api_calls_total",
+		Help: "Number of API calls to openweathermap.org",
+	}, []string{"location", "endpoint", "response_status"})
 )
+
+func init() {
+	prometheus.MustRegister(apiCallCounter)
+}
 
 func CurrentByCoordinates(loc Location, client *http.Client, settings *Settings) (*OneCallCurrentData, error) {
 	var onecall OneCallData
@@ -33,7 +44,7 @@ func CurrentByCoordinates(loc Location, client *http.Client, settings *Settings)
 		return nil, fmt.Errorf("unknown unit %s (must be C, F, or K)", settings.DegreesUnit)
 	}
 
-	u, _ := url.Parse("https://api.openweathermap.org/data/3.0/onecall")
+	endpoint := "https://api.openweathermap.org/data/3.0/onecall"
 
 	q := url.Values{}
 	q.Set("appid", settings.ApiKey)
@@ -43,9 +54,14 @@ func CurrentByCoordinates(loc Location, client *http.Client, settings *Settings)
 	q.Set("lang", settings.Language)
 	q.Set("excludes", "minutely,hourly,daily,alerts")
 
+	u, _ := url.Parse(endpoint)
 	u.RawQuery = q.Encode()
 
 	response, err := client.Get(u.String())
+
+	if response != nil {
+		apiCallCounter.WithLabelValues(loc.Location, endpoint, response.Status).Inc()
+	}
 
 	if err != nil {
 		return nil, err
@@ -64,16 +80,21 @@ func CurrentByCoordinates(loc Location, client *http.Client, settings *Settings)
 func PollutionByCoordinates(loc Location, client *http.Client, settings *Settings) (*PollutionData, error) {
 	var pollution Pollution
 
-	u, _ := url.Parse("http://api.openweathermap.org/data/2.5/air_pollution")
+	endpoint := "http://api.openweathermap.org/data/2.5/air_pollution"
 
 	q := url.Values{}
 	q.Set("appid", settings.ApiKey)
 	q.Set("lat", fmt.Sprint(loc.Latitude))
 	q.Set("lon", fmt.Sprint(loc.Longitude))
 
+	u, _ := url.Parse(endpoint)
 	u.RawQuery = q.Encode()
 
 	response, err := client.Get(u.String())
+
+	if response != nil {
+		apiCallCounter.WithLabelValues(loc.Location, endpoint, response.Status).Inc()
+	}
 
 	if err != nil {
 		return nil, err

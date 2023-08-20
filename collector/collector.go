@@ -28,10 +28,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-// OpenweatherCollector Define a struct for your collector that contains pointers
-// to prometheus descriptors for each metric you wish to expose.
-// Note you can also include fields of other types if they provide utility,
-// but we just won't be exposing them as metrics.
 var notFound = ttlcache.ErrNotFound
 
 type Settings struct {
@@ -138,7 +134,7 @@ func cachedHttpRequest[T any](collector *OpenweatherCollector, key string, reque
 		}
 		err = collector.Cache.Set(key, w)
 		if err != nil {
-			return w, fmt.Errorf("Could not set cache data. %s", err.Error())
+			return w, fmt.Errorf("could not set cache data: %s", err.Error())
 		}
 		return w, nil
 	}
