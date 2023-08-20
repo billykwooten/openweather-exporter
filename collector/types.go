@@ -64,3 +64,30 @@ type OneCallCurrentData struct {
 	Snow       Snow      `json:"snow,omitempty"`
 	Weather    []Weather `json:"weather"`
 }
+
+// Pollution API: https://openweathermap.org/api/air-pollution#current
+
+type Pollution struct {
+	Location struct {
+		Longitude float64 `json:"lon"`
+		Latitude  float64 `json:"lat"`
+	} `json:"coord"`
+	List []PollutionData `json:"list"`
+}
+
+type PollutionData struct {
+	Dt   int `json:"dt"`
+	Main struct {
+		Aqi float64 `json:"aqi"`
+	} `json:"main"`
+	Components struct {
+		Co   float64 `json:"co"`
+		No   float64 `json:"no"`
+		No2  float64 `json:"no2"`
+		O3   float64 `json:"o3"`
+		So2  float64 `json:"so2"`
+		Pm25 float64 `json:"pm2_5"`
+		Pm10 float64 `json:"pm10"`
+		Nh3  float64 `json:"nh3"`
+	} `json:"components"`
+}

@@ -38,6 +38,7 @@ type Settings struct {
 	ApiKey      string
 	DegreesUnit string
 	Language    string
+	EnablePol   bool
 }
 
 type OpenweatherCollector struct {
@@ -45,14 +46,16 @@ type OpenweatherCollector struct {
 	Cache     *ttlcache.Cache
 	Locations []Location
 
-	gaugesByLocation map[string][]Gauge
+	client *http.Client
+
+	oneCallMetrics   map[string][]Metric
+	pollutionMetrics map[string][]Metric
 }
 
 type Location struct {
-	Location    string
-	Latitude    float64
-	Longitude   float64
-	CacheKeyOWM string
+	Location  string
+	Latitude  float64
+	Longitude float64
 }
 
 func resolveLocations(locations string) []Location {
@@ -64,8 +67,7 @@ func resolveLocations(locations string) []Location {
 		if err != nil {
 			log.Fatal("failed to resolve location:", err)
 		}
-		cacheKeyOWM := fmt.Sprintf("OWM %s", location)
-		res = append(res, Location{Location: location, Latitude: latitude, Longitude: longitude, CacheKeyOWM: cacheKeyOWM})
+		res = append(res, Location{Location: location, Latitude: latitude, Longitude: longitude})
 	}
 	return res
 }
@@ -75,26 +77,40 @@ func resolveLocations(locations string) []Location {
 func NewOpenweatherCollector(settings *Settings, locationsStr string, cache *ttlcache.Cache) *OpenweatherCollector {
 	locations := resolveLocations(locationsStr)
 
-	gauges := make(map[string][]Gauge)
+	oneCallMetrics := make(map[string][]Metric)
+	pollutionMetrics := make(map[string][]Metric)
 	for _, loc := range locations {
-		gauges[loc.Location] = OneCallGauges(loc.Location)
+		oneCallMetrics[loc.Location] = OneCallGauges(loc.Location)
+
+		if settings.EnablePol {
+			pollutionMetrics[loc.Location] = PollutionGauges(loc.Location)
+		}
 	}
 
 	return &OpenweatherCollector{
 		Settings:  settings,
 		Locations: locations,
 		Cache:     cache,
-
-		gaugesByLocation: gauges,
+		client: &http.Client{
+			Timeout: 30 * time.Second,
+		},
+		oneCallMetrics:   oneCallMetrics,
+		pollutionMetrics: pollutionMetrics,
 	}
 }
 
 // Describe Each and every collector must implement the Describe function.
 // It essentially writes all descriptors to the prometheus desc channel.
 func (collector *OpenweatherCollector) Describe(ch chan<- *prometheus.Desc) {
-	for _, gauges := range collector.gaugesByLocation {
-		for _, gauge := range gauges {
-			ch <- gauge.Desc()
+	for _, metrics := range collector.oneCallMetrics {
+		for _, metric := range metrics {
+			ch <- metric.Desc()
+		}
+	}
+
+	for _, metrics := range collector.pollutionMetrics {
+		for _, metric := range metrics {
+			ch <- metric.Desc()
 		}
 	}
 }
@@ -102,33 +118,63 @@ func (collector *OpenweatherCollector) Describe(ch chan<- *prometheus.Desc) {
 // Collect implements required collect function for all prometheus collectors
 func (collector *OpenweatherCollector) Collect(ch chan<- prometheus.Metric) {
 	for _, location := range collector.Locations {
-		var w *OneCallCurrentData
+		collector.collectOneCall(location, ch)
 
-		// Setup HTTP Client
-		client := &http.Client{
-			Timeout: 30 * time.Second,
+		if collector.Settings.EnablePol {
+			collector.collectPollution(location, ch)
 		}
+	}
+}
 
-		if val, err := collector.Cache.Get(location.CacheKeyOWM); err != notFound || val != nil {
-			// Grab Metrics from cache
-			w = val.(*OneCallCurrentData)
-		} else {
-			// Grab Metrics
-			w, err = CurrentByCoordinates(location, client, collector.Settings)
-			if err != nil {
-				log.Infof("Collecting metrics failed for %s: %s", location.Location, err.Error())
-				continue
-			}
-			err = collector.Cache.Set(location.CacheKeyOWM, w)
-			if err != nil {
-				log.Infof("Could not set cache data. %s", err.Error())
-				continue
-			}
+func cachedHttpRequest[T any](collector *OpenweatherCollector, key string, request func() (T, error)) (T, error) {
+	if val, err := collector.Cache.Get(key); err != notFound || val != nil {
+		// Grab Metrics from cache
+		return val.(T), nil
+	} else {
+		// Grab Metrics
+		w, err := request()
+		if err != nil {
+			return w, err
 		}
+		err = collector.Cache.Set(key, w)
+		if err != nil {
+			return w, fmt.Errorf("Could not set cache data. %s", err.Error())
+		}
+		return w, nil
+	}
+}
 
-		// Write the latest value for each metric in the prometheus metric channel.
-		for _, gauge := range collector.gaugesByLocation[location.Location] {
-			ch <- gauge.FromResponse(w)
-		}
+func (collector *OpenweatherCollector) collectOneCall(location Location, ch chan<- prometheus.Metric) {
+	w, err := cachedHttpRequest(collector, location.Location+":onecall",
+		func() (*OneCallCurrentData, error) {
+			return CurrentByCoordinates(location, collector.client, collector.Settings)
+		},
+	)
+
+	if err != nil {
+		log.Infof("Collecting metrics failed for %s: %s", location.Location, err.Error())
+		return
+	}
+
+	// Write the latest value for each metric in the prometheus metric channel.
+	for _, metric := range collector.oneCallMetrics[location.Location] {
+		ch <- metric.FromResponse(w)
+	}
+}
+
+func (collector *OpenweatherCollector) collectPollution(location Location, ch chan<- prometheus.Metric) {
+	w, err := cachedHttpRequest(collector, location.Location+":pollution",
+		func() (*PollutionData, error) {
+			return PollutionByCoordinates(location, collector.client, collector.Settings)
+		},
+	)
+
+	if err != nil {
+		log.Infof("Collecting metrics failed for %s: %s", location.Location, err.Error())
+		return
+	}
+
+	for _, metric := range collector.pollutionMetrics[location.Location] {
+		ch <- metric.FromResponse(w)
 	}
 }

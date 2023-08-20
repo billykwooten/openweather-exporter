@@ -60,3 +60,31 @@ func CurrentByCoordinates(loc Location, client *http.Client, settings *Settings)
 
 	return &onecall.Current, nil
 }
+
+func PollutionByCoordinates(loc Location, client *http.Client, settings *Settings) (*PollutionData, error) {
+	var pollution Pollution
+
+	u, _ := url.Parse("http://api.openweathermap.org/data/2.5/air_pollution")
+
+	q := url.Values{}
+	q.Set("appid", settings.ApiKey)
+	q.Set("lat", fmt.Sprint(loc.Latitude))
+	q.Set("lon", fmt.Sprint(loc.Longitude))
+
+	u.RawQuery = q.Encode()
+
+	response, err := client.Get(u.String())
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer response.Body.Close()
+	if bytes, err := io.ReadAll(response.Body); err != nil {
+		return nil, err
+	} else if err := json.Unmarshal(bytes, &pollution); err != nil {
+		return nil, fmt.Errorf("response: %s; error: %s", string(bytes), err.Error())
+	}
+
+	return &pollution.List[0], nil
+}
