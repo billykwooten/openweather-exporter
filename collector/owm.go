@@ -80,7 +80,7 @@ func CurrentByCoordinates(loc Location, client *http.Client, settings *Settings)
 func PollutionByCoordinates(loc Location, client *http.Client, settings *Settings) (*PollutionData, error) {
 	var pollution Pollution
 
-	endpoint := "http://api.openweathermap.org/data/2.5/air_pollution"
+	endpoint := "https://api.openweathermap.org/data/2.5/air_pollution"
 
 	q := url.Values{}
 	q.Set("appid", settings.ApiKey)
