@@ -1,4 +1,4 @@
-// Copyright 2023 Artem Tarasov
+// Copyright 2023 Billy Wooten
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -16,6 +16,7 @@ package collector
 import (
 	"encoding/json"
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"io"
 	"net/http"
 	"net/url"
@@ -57,7 +58,14 @@ func CurrentByCoordinates(loc Location, client *http.Client, settings *Settings)
 	u, _ := url.Parse(endpoint)
 	u.RawQuery = q.Encode()
 
+	log.Infof("Gathering Metrics from Openweather API 3.0 for %s, Lat:%f, Lon:%f", loc.Location, loc.Latitude, loc.Longitude)
 	response, err := client.Get(u.String())
+
+	// Success is indicated with 2xx status codes:
+	statusOK := response.StatusCode >= 200 && response.StatusCode < 300
+	if !statusOK {
+		log.Fatal("Non-OK HTTP status when hitting openweather API, is your API Key correct and did you sign up for the 3.0 API plan?"+" Response given was: ", response.Status+". If you have not signed up for the free or paid subscription for the 3.0 API, please see https://openweathermap.org/price, after activation it might take 1-4 hours for their API to accept your API key, there is nothing I can do about this as it's server-side.")
+	}
 
 	if response != nil {
 		apiCallCounter.WithLabelValues(loc.Location, endpoint, response.Status).Inc()
@@ -67,7 +75,13 @@ func CurrentByCoordinates(loc Location, client *http.Client, settings *Settings)
 		return nil, err
 	}
 
-	defer response.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+
+		}
+	}(response.Body)
+
 	if bytes, err := io.ReadAll(response.Body); err != nil {
 		return nil, err
 	} else if err := json.Unmarshal(bytes, &onecall); err != nil {
@@ -100,7 +114,12 @@ func PollutionByCoordinates(loc Location, client *http.Client, settings *Setting
 		return nil, err
 	}
 
-	defer response.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+
+		}
+	}(response.Body)
 	if bytes, err := io.ReadAll(response.Body); err != nil {
 		return nil, err
 	} else if err := json.Unmarshal(bytes, &pollution); err != nil {

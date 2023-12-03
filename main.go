@@ -14,6 +14,7 @@
 package main
 
 import (
+	"github.com/jellydator/ttlcache/v2"
 	"net/http"
 	"os"
 	"strconv"
@@ -21,11 +22,10 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
+	"github.com/alecthomas/kingpin/v2"
 	"github.com/billykwooten/openweather-exporter/collector"
-	"github.com/jellydator/ttlcache/v2"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 var (
@@ -54,12 +54,16 @@ func main() {
 
 	// Create a new instance of the weatherCollector with caching and
 	// register it with the prometheus client.
+	log.Infof("Cache Time set to: %s", *cacheTTL+" seconds")
 	cache := ttlcache.NewCache()
 	ttl, err := strconv.ParseUint(*cacheTTL, 10, 64)
 	if err != nil {
 		log.Fatal("Invalid TTL value: ", err)
 	}
-	cache.SetTTL(time.Duration(ttl) * time.Second)
+	err = cache.SetTTL(time.Duration(ttl) * time.Second)
+	if err != nil {
+		return
+	}
 	cache.SkipTTLExtensionOnHit(true)
 
 	// Add some logging for extra collectors

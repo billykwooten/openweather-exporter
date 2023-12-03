@@ -1,4 +1,4 @@
-// Copyright 2023 Artem Tarasov
+// Copyright 2023 Billy Wooten
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -28,7 +28,7 @@ type Snow struct {
 	OneH float64 `json:"1h,omitempty"`
 }
 
-// https://openweathermap.org/weather-conditions#Weather-Condition-Codes-2
+// Weather https://openweathermap.org/weather-conditions#Weather-Condition-Codes-2
 type Weather struct {
 	ID          int    `json:"id"`
 	Main        string `json:"main"`
@@ -36,7 +36,7 @@ type Weather struct {
 	Icon        string `json:"icon"`
 }
 
-// the API should be called with exclude=minutely,hourly,daily,alerts
+// OneCallData the API should be called with exclude=minutely,hourly,daily,alerts
 type OneCallData struct {
 	Latitude       float64            `json:"lat"`
 	Longitude      float64            `json:"lon"`
