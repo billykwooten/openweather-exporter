@@ -1,9 +1,8 @@
 module github.com/billykwooten/openweather-exporter
 
-go 1.19
+go 1.21
 
 require (
-	github.com/briandowns/openweathermap v0.19.0
 	github.com/codingsince1985/geo-golang v1.8.3
 	github.com/jellydator/ttlcache/v2 v2.11.1
 	github.com/prometheus/client_golang v1.14.0
