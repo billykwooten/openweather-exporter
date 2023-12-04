@@ -14,6 +14,7 @@
 package main
 
 import (
+	"github.com/jellydator/ttlcache/v2"
 	"net/http"
 	"os"
 	"strconv"
@@ -21,11 +22,10 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
+	"github.com/alecthomas/kingpin/v2"
 	"github.com/billykwooten/openweather-exporter/collector"
-	"github.com/jellydator/ttlcache/v2"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"gopkg.in/alecthomas/kingpin.v2"
 )
 
 var (
@@ -40,7 +40,6 @@ var (
 
 	// Extra App Flags
 	enablePol = app.Flag("enable-pol", "Enable Pollution Metrics. (Default: false)").Envar("OW_ENABLE_POL").Default("false").Bool()
-	enableUV  = app.Flag("enable-uv", "Enable Ultraviolet Index Metrics. (Default: false)").Envar("OW_ENABLE_UV").Default("false").Bool()
 )
 
 func main() {
@@ -55,23 +54,27 @@ func main() {
 
 	// Create a new instance of the weatherCollector with caching and
 	// register it with the prometheus client.
+	log.Infof("Cache Time set to: %s", *cacheTTL+" seconds")
 	cache := ttlcache.NewCache()
 	ttl, err := strconv.ParseUint(*cacheTTL, 10, 64)
 	if err != nil {
 		log.Fatal("Invalid TTL value: ", err)
 	}
-	cache.SetTTL(time.Duration(ttl) * time.Second)
+	err = cache.SetTTL(time.Duration(ttl) * time.Second)
+	if err != nil {
+		return
+	}
 	cache.SkipTTLExtensionOnHit(true)
 
 	// Add some logging for extra collectors
 	if *enablePol {
 		log.Info("Pollution metrics enabled, this will call the API more than once per call.")
 	}
-	if *enableUV {
-		log.Info("Ultraviolet Index metrics enabled, this will call the API more than once per call.")
-	}
 
-	weatherCollector := collector.NewOpenweatherCollector(*degreesUnit, *language, *apiKey, *city, cache, *enablePol, *enableUV)
+	settings := collector.Settings{
+		DegreesUnit: *degreesUnit, Language: *language, ApiKey: *apiKey, EnablePol: *enablePol,
+	}
+	weatherCollector := collector.NewOpenweatherCollector(&settings, *city, cache)
 	prometheus.MustRegister(weatherCollector)
 
 	// This section will start the HTTP server and expose

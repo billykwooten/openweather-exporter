@@ -36,7 +36,8 @@ GO111MODULE=on go mod tidy
 GO111MODULE=on go mod verify
 
 taskProgress "docker"
-docker buildx build  --platform linux/amd64 --build-arg LD_FLAGS="$LD_FLAGS" -f Dockerfile -t "${IMAGE_NAME}:${IMAGE_TAG}" .
+#docker buildx build  --platform linux/amd64 --build-arg LD_FLAGS="$LD_FLAGS" -f Dockerfile -t "${IMAGE_NAME}:${IMAGE_TAG}" .
+docker buildx build --no-cache --push --platform linux/amd64,linux/arm64 --build-arg LD_FLAGS="$LD_FLAGS" -f Dockerfile -t "billykwooten/openweather-exporter:latest" .
 
 echo "==> Finished building Docker image for ${IMAGE_NAME}:${IMAGE_TAG}"
 

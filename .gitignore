@@ -16,3 +16,6 @@ vendor/
 
 # GoLand specific folders/files
 .idea/
+
+# VSCode Dev Containers configuration
+.devcontainer/
