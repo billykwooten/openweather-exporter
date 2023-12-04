@@ -2,7 +2,7 @@
 # Build Container Creation
 ########################
 
-FROM golang:1.21 as build
+FROM golang:1.21.4 as build
 
 ARG LD_FLAGS
 

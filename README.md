@@ -7,12 +7,15 @@
 ![Go Version](https://img.shields.io/github/go-mod/go-version/billykwooten/openweather-exporter)
 
 
-Prometheus exporter for [openweather API](https://openweathermap.org/api)
+Prometheus exporter for [openweather API](https://openweathermap.org/api). 
+
+NOTE: As of version 0.0.12 of this exporter, you need to sign up for the API 3.0 free or paid subscription for your API keys to work.
 
 # Requirements
 
 * Linux / MacOSX, [`git bash`](https://git-scm.com/download/win) for Windows
 * [docker](https://www.docker.com)
+* Openweather API 3.0 Subscription (Free or Paid)
 
 ## Development
 
