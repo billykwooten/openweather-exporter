@@ -28,15 +28,15 @@ Openweather exporter can be controlled by both ENV or CLI flags as described bel
 
 Enabling `OW_ENABLE_POL` will call the API more times to pull pollution/air quality data, be weary of your API calls, so you do not get charged. See openweather pricing [here](https://openweathermap.org/price).
 
-| Environment        	 | CLI (`--flag`)   | Default                 	 | Description                                                                          |
-|----------------------|------------------|---------------------------|--------------------------------------------------------------------------------------|
-| `OW_LISTEN_ADDRESS`  | `listen-address` | `:9091`                   | The port for /metrics to listen on                                                   |
-| `OW_APIKEY`          | `apikey`         | `<REQUIRED>`              | Your Openweather API key                                                             |
-| `OW_CITY`            | `city`           | `New York, NY`            | City/Location in which to gather weather metrics. Separate multiple locations with \ | for example "New York, NY\|Seattle, WA" |
-| `OW_DEGREES_UNIT`    | `degrees-unit`   | `F`                       | Unit in which to show metrics (Kelvin, Fahrenheit or Celsius)                        |
-| `OW_LANGUAGE`        | `language`       | `EN`                      | Language in which to show metrics                                                    |
-| `OW_CACHE_TTL`       | `cache-ttl`      | `300`                     | Time to Live Caching Time in Seconds                                                 |
-| `OW_ENABLE_POL`      | `enable-pol`     | `false (bool)`            | Enable Pollution Metrics.                                                            |
+| Environment        	 | CLI (`--flag`)   | Default                 	 | Description                                                                                       |
+|----------------------|------------------|---------------------------|---------------------------------------------------------------------------------------------------|
+| `OW_LISTEN_ADDRESS`  | `listen-address` | `:9091`                   | The port for /metrics to listen on                                                                |
+| `OW_APIKEY`          | `apikey`         | `<REQUIRED>`              | Your Openweather API key                                                                          |
+| `OW_CITY`            | `city`           | `New York, NY`            | City/Location in which to gather weather metrics. Separate multiple locations with a pipe, " \| " | for example "New York, NY\|Seattle, WA" |
+| `OW_DEGREES_UNIT`    | `degrees-unit`   | `F`                       | Unit in which to show metrics (Kelvin, Fahrenheit or Celsius)                                     |
+| `OW_LANGUAGE`        | `language`       | `EN`                      | Language in which to show metrics                                                                 |
+| `OW_CACHE_TTL`       | `cache-ttl`      | `300`                     | Time to Live Caching Time in Seconds                                                              |
+| `OW_ENABLE_POL`      | `enable-pol`     | `false (bool)`            | Enable Pollution Metrics.                                                                         |
 
 ## Usage
 

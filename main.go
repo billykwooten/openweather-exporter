@@ -74,6 +74,7 @@ func main() {
 	settings := collector.Settings{
 		DegreesUnit: *degreesUnit, Language: *language, ApiKey: *apiKey, EnablePol: *enablePol,
 	}
+
 	weatherCollector := collector.NewOpenweatherCollector(&settings, *city, cache)
 	prometheus.MustRegister(weatherCollector)
 
