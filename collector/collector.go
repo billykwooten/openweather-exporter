@@ -14,6 +14,7 @@
 package collector
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -21,7 +22,6 @@ import (
 
 	"github.com/jellydator/ttlcache/v2"
 
-	"github.com/codingsince1985/geo-golang/openstreetmap"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/billykwooten/openweather-exporter/geo"
@@ -59,7 +59,7 @@ func resolveLocations(locations string) []Location {
 
 	for _, location := range strings.Split(locations, "|") {
 		// Get Coords.
-		latitude, longitude, err := geo.GetCoords(openstreetmap.Geocoder(), location)
+		latitude, longitude, err := geo.GetCoords(location)
 		if err != nil {
 			log.Fatal("failed to resolve location:", err)
 		}
@@ -123,7 +123,7 @@ func (collector *OpenweatherCollector) Collect(ch chan<- prometheus.Metric) {
 }
 
 func cachedHttpRequest[T any](collector *OpenweatherCollector, key string, request func() (T, error)) (T, error) {
-	if val, err := collector.Cache.Get(key); err != notFound || val != nil {
+	if val, err := collector.Cache.Get(key); !errors.Is(err, notFound) || val != nil {
 		// Grab Metrics from cache
 		return val.(T), nil
 	} else {

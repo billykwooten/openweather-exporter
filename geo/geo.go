@@ -14,23 +14,29 @@
 package geo
 
 import (
-	"github.com/codingsince1985/geo-golang"
 	log "github.com/sirupsen/logrus"
 )
 
-func GetCoords(geocoder geo.Geocoder, city string) (float64, float64, error) {
-	location, err := geocoder.Geocode(city)
+var n = Nominatim{}
+
+func GetCoords(city string) (float64, float64, error) {
+	log.Info("Looking up: " + city)
+
+	results, err := n.Search(SearchParameters{ // Check SearchResult struct for details
+		Query:          city,
+		IncludeAddress: true,
+		IncludeGeoJSON: true,
+	})
 	if err != nil {
-		return 0, 0, err
+		log.Error(err)
 	}
 
-	if location != nil {
-		log.Infof("Latitude: %f Longitude: %f for %s found", location.Lat, location.Lng, city)
-
-		return location.Lat, location.Lng, nil
+	if results[0].Lat != 0 {
+		log.Infof("Latitude: %f Longitude: %f for %s found", results[0].Lat, results[0].Lng, results[0].DisplayName)
+		return results[0].Lat, results[0].Lng, nil
 	} else {
 		log.Fatalf("Could not get location data for %s", city)
 		return 0, 0, err
-
 	}
+
 }
