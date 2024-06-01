@@ -28,7 +28,7 @@ func GetCoords(city string) (float64, float64, error) {
 		IncludeGeoJSON: true,
 	})
 	if err != nil {
-		log.Error(err)
+		return 0, 0, err
 	}
 
 	if results[0].Lat != 0 {
