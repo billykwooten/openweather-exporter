@@ -95,6 +95,8 @@ Openweather exporter metrics that are collected by default.
 | `openweather_sunset`            | `Sunset time, unix, UTC`                                                     |
 | `openweather_currentconditions` | `Current weather conditions (sunny, cloudy, rainy, etc.)`                    |
 | `openweather_ultraviolet_index` | `Ultraviolet Index` |
+| `openweather_visibility` | `Visibility in meters` |
+
 
 If you enable pollution metrics, the following metrics will be enabled.
 
