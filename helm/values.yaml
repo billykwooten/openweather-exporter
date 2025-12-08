@@ -27,15 +27,19 @@ serviceMonitor:
   # serviceMonitor.scrapeTimeout -- Timeout after which the scrape is ended
   scrapeTimeout: 30s
   # serviceMonitor.serviceMonitorSelector -- Selector for Service Monitor to be picked up by Prometheus Operator
-  serviceMonitorSelector: {
+  serviceMonitorSelector:
     release: prometheus
-  }
 
 ow:
   # ow.port -- Port to expose /metrics on, used both in pod and for service
   port: "9091"
+
+  # either set the apiKey here or reference and existing secret with an OW_APIKEY key
   # ow.apiKey -- Your Openweather API key
   apiKey: ""
+  # ow.secretRef -- a ref to en existing secret
+  secretRef: ""
+
   # ow.city -- City/Location in which to gather weather metrics. Separate multiple locations with | for example "New York, NY|Seattle, WA"
   city: "New York, NY"
   # ow.degreesUnit -- Unit in which to show metrics (Kelvin, Fahrenheit or Celsius)
