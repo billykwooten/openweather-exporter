@@ -1,4 +1,4 @@
-// Copyright 2023 Billy Wooten
+// Copyright 2025 Billy Wooten
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -14,11 +14,12 @@
 package main
 
 import (
-	"github.com/jellydator/ttlcache/v2"
 	"net/http"
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/jellydator/ttlcache/v2"
 
 	log "github.com/sirupsen/logrus"
 
