@@ -1,6 +1,5 @@
 # OpenWeather Exporter
 ![Docker Pulls](https://img.shields.io/docker/pulls/billykwooten/openweather-exporter.svg)
-![Docker Automated](https://img.shields.io/docker/cloud/automated/billykwooten/openweather-exporter.svg)
 [![report](https://goreportcard.com/badge/github.com/billykwooten/openweather-exporter)](https://goreportcard.com/report/github.com/billykwooten/openweather-exporter)
 [![license](https://img.shields.io/github/license/billykwooten/openweather-exporter.svg)](https://github.com/billykwooten/openweather-exporter/blob/main/LICENSE)
 [![release](https://img.shields.io/github/release/billykwooten/openweather-exporter/all.svg)](https://github.com/billykwooten/openweather-exporter/releases)
@@ -87,6 +86,7 @@ Openweather exporter metrics that are collected by default.
 | `openweather_feelslike`         | `Current feels_like temperature in degrees (heat index)`                     |
 | `openweather_pressure`          | `Current Atmospheric pressure hPa`                                           |
 | `openweather_windspeed`         | `Current Wind Speed in mph or meters/sec if imperial`                        |
+| `openweather_windgust`          | `Current Wind Gust in mph or meters/sec if imperial`                         |
 | `openweather_rain1h`            | `Rain volume for last hour, in millimeters`                                  |
 | `openweather_snow1h`            | `Snow volume for last hour, in millimeters`                                  |
 | `openweather_winddegree`        | `Wind direction, degrees (meteorological)`                                   |
@@ -95,6 +95,8 @@ Openweather exporter metrics that are collected by default.
 | `openweather_sunset`            | `Sunset time, unix, UTC`                                                     |
 | `openweather_currentconditions` | `Current weather conditions (sunny, cloudy, rainy, etc.)`                    |
 | `openweather_ultraviolet_index` | `Ultraviolet Index` |
+| `openweather_visibility` | `Visibility in meters` |
+
 
 If you enable pollution metrics, the following metrics will be enabled.
 

@@ -71,6 +71,9 @@ func OneCallGauges(location string) []Metric {
 		makeGauge("openweather_windspeed", "Current Wind Speed in mph or meters/sec if imperial",
 			func(d *OneCallCurrentData) float64 { return d.WindSpeed },
 		),
+		makeGauge("openweather_windgust", "Current Wind Gust in mph or meters/sec if imperial",
+			func(d *OneCallCurrentData) float64 { return d.WindGust },
+		),
 		makeGauge("openweather_rain1h", "Rain volume for last hour, in millimeters",
 			func(d *OneCallCurrentData) float64 { return d.Rain.OneH },
 		),
@@ -92,19 +95,30 @@ func OneCallGauges(location string) []Metric {
 		makeGauge("openweather_ultraviolet_index", "Ultraviolet Index",
 			func(d *OneCallCurrentData) float64 { return d.UVI },
 		),
+		makeGauge("openweather_visibility", "Visibility in meters",
+			func(d *OneCallCurrentData) float64 { return float64(d.Visibility) },
+		),
 		&Gauge[*OneCallCurrentData]{
 			prometheus.NewDesc("openweather_currentconditions",
 				"Current weather conditions",
-				[]string{"location", "currentconditions"}, nil,
+				[]string{"location", "currentconditions", "icon"}, nil,
 			),
-			func(*OneCallCurrentData) float64 { return 0 },
+			func(d *OneCallCurrentData) float64 {
+				var weatherID float64
+				for _, n := range d.Weather {
+					weatherID = float64(n.ID)
+				}
+				return weatherID
+			},
 			func(d *OneCallCurrentData) []string {
 				// Get Weather description out of Weather slice to pass as label
 				var weatherDescription string
+				var icon string
 				for _, n := range d.Weather {
 					weatherDescription = n.Description
+					icon = n.Icon
 				}
-				return []string{location, weatherDescription}
+				return []string{location, weatherDescription, icon}
 			},
 		},
 	}

@@ -1,4 +1,4 @@
-// Copyright 2023 Billy Wooten
+// Copyright 2025 Billy Wooten
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
@@ -14,11 +14,14 @@
 package main
 
 import (
-	"github.com/jellydator/ttlcache/v2"
+	"embed"
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
+
+	"github.com/jellydator/ttlcache/v2"
 
 	log "github.com/sirupsen/logrus"
 
@@ -42,7 +45,19 @@ var (
 	enablePol = app.Flag("enable-pol", "Enable Pollution Metrics. (Default: false)").Envar("OW_ENABLE_POL").Default("false").Bool()
 )
 
+//go:embed VERSION
+var versionFile embed.FS
+
+func getVersion() string {
+	data, err := versionFile.ReadFile("VERSION")
+	if err != nil {
+		return "unknown"
+	}
+	return strings.TrimSpace(string(data))
+}
+
 func main() {
+	app.Version(getVersion())
 	kingpin.MustParse(app.Parse(os.Args[1:]))
 
 	// Setup better logging

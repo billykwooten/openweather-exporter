@@ -24,7 +24,16 @@ spec:
             - configMapRef:
                 name: {{ .Release.Name }}-{{ .Chart.Name }}-cm
             - secretRef:
+            {{- if and .Values.ow.apiKey .Values.ow.secretRef}}
+              {{- fail "cannot set both .ow.apiKey and .ow.secretRef"}}
+            {{- else if and (empty .Values.ow.apiKey) (empty .Values.ow.secretRef) }}
+              {{- fail "you need to set either .ow.apiKey or .ow.apiKey" }}
+            {{- end}}
+            {{- if and .Values.ow.secretRef (not .Values.ow.apiRef) }}
+                name: {{ .Values.ow.secretRef }}
+            {{- else }}
                 name: {{ .Release.Name }}-{{ .Chart.Name }}-secret
+            {{- end }}
           env:
             {{- range .Values.env_vars }}
             - name: {{ .name }}
