@@ -75,10 +75,6 @@ func CurrentByCoordinates(loc Location, client *http.Client, settings *Settings)
 		apiCallCounter.WithLabelValues(loc.Location, endpoint, response.Status).Inc()
 	}
 
-	if err != nil {
-		return nil, err
-	}
-
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		if err != nil {
