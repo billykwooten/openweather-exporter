@@ -98,6 +98,9 @@ func OneCallGauges(location string) []Metric {
 		makeGauge("openweather_visibility", "Visibility in meters",
 			func(d *OneCallCurrentData) float64 { return float64(d.Visibility) },
 		),
+		makeGauge("openweather_dewpoint", "Dew Point",
+			func(d *OneCallCurrentData) float64 { return float64(d.DewPoint) },
+		),
 		&Gauge[*OneCallCurrentData]{
 			prometheus.NewDesc("openweather_currentconditions",
 				"Current weather conditions",
